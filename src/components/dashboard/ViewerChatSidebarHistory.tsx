@@ -60,7 +60,9 @@ export function ViewerChatSidebarHistory({
       setSessions(data.sessions || []);
     } catch (loadError) {
       setError(
-        loadError instanceof Error ? loadError.message : "Unable to load chats.",
+        loadError instanceof Error
+          ? loadError.message
+          : "Unable to load chats.",
       );
     } finally {
       setLoading(false);
@@ -90,44 +92,9 @@ export function ViewerChatSidebarHistory({
   };
 
   const handleNewChat = async () => {
-    try {
-      setError(null);
-      const accessToken = await getAccessToken();
-      if (!accessToken) {
-        throw new Error("Authentication session expired");
-      }
-
-      const response = await fetch("/api/chat/sessions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({}),
-      });
-
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || "Unable to create a new chat");
-      }
-
-      const sessionId = data.session?.id;
-      window.dispatchEvent(new Event(CHAT_SESSION_EVENT));
-      if (typeof sessionId === "string") {
-        const next = new URLSearchParams(searchParams.toString());
-        next.set("session", sessionId);
-        router.push(`${pathname}?${next.toString()}`);
-      } else {
-        router.push(pathname);
-      }
-      onNavigate?.();
-    } catch (createError) {
-      setError(
-        createError instanceof Error
-          ? createError.message
-          : "Unable to create a new chat.",
-      );
-    }
+    setError(null);
+    router.push(pathname);
+    onNavigate?.();
   };
 
   const handleDelete = async () => {
@@ -187,7 +154,10 @@ export function ViewerChatSidebarHistory({
         <div className="min-h-0 flex-1 overflow-y-auto pr-1">
           {loading ? (
             <div className="flex items-center gap-2 px-3 py-2 text-xs text-[var(--ink-muted)]">
-              <Loader2 size={14} className="animate-spin text-teal-300" />
+              <Loader2
+                size={14}
+                className="animate-spin text-[var(--accent-jade)]"
+              />
               Loading chats...
             </div>
           ) : sessions.length === 0 ? (
@@ -202,7 +172,9 @@ export function ViewerChatSidebarHistory({
                     key={session.id}
                     className={cn(
                       "group flex items-start gap-2 rounded-xl px-3 py-2.5 transition",
-                      isActive ? "bg-white/8" : "hover:bg-white/4",
+                      isActive
+                        ? "bg-[var(--accent-jade-50)]"
+                        : "hover:bg-[var(--canvas-soft)]",
                     )}
                   >
                     <button
@@ -214,13 +186,17 @@ export function ViewerChatSidebarHistory({
                         <span
                           className={cn(
                             "mt-[0.42rem] h-1.5 w-1.5 shrink-0 rounded-full",
-                            isActive ? "bg-teal-300 shadow-[0_0_10px_rgba(103,232,249,0.45)]" : "bg-slate-500",
+                            isActive
+                              ? "bg-[var(--accent-jade)]"
+                              : "bg-[var(--ink-muted)]",
                           )}
                         />
                         <span
                           className={cn(
                             "line-clamp-2 text-sm leading-5",
-                            isActive ? "text-white" : "text-slate-300",
+                            isActive
+                              ? "text-[var(--ink)]"
+                              : "text-[var(--ink-soft)]",
                           )}
                           title={session.title}
                         >
@@ -248,14 +224,14 @@ export function ViewerChatSidebarHistory({
           <p className="mt-3 px-3 text-xs leading-5 text-red-300">{error}</p>
         ) : null}
 
-        <div className="mt-5 border-t border-white/5 pt-5">
+        <div className="mt-5 border-t border-[var(--line)] pt-5">
           <button
             type="button"
             onClick={handleNewChat}
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl border border-teal-400/20 bg-[var(--accent-jade-hover)] text-sm font-semibold text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.03)] transition hover:bg-[#18314f]"
+            className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl border border-[var(--accent-jade-100)] bg-[var(--accent-jade-50)] text-sm font-semibold text-[var(--accent-jade-hover)] transition hover:border-[var(--accent-jade-200)] hover:bg-[var(--accent-jade-100)]"
           >
             <MessageSquarePlus size={16} />
-            New Chat
+            New chat
           </button>
         </div>
       </div>

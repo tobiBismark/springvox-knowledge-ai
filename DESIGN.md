@@ -1,17 +1,17 @@
 # Rekall-IQ Design System
 
-> **CURRENT DIRECTION (2026-06-12) — Unified dark, professional console.**
+> **CURRENT DIRECTION (2026-08-06) — Unified dark, professional console.**
 > The entire product — landing page, auth, dashboard, and platform console — uses one **dark theme**.
 > - **Canvas:** near-black olive-tinted `#0a0c0b` (`--canvas`); surfaces `#141816` (`--surface`); raised `#1c211e` (`--surface-2`); hairline borders `#242a26` (`--line`).
 > - **Text:** `--ink #f3f5f4`, `--ink-soft #b2bab5`, `--ink-muted #7b847e`.
-> - **Accent:** jade/teal — `--accent-jade #14b8a6`, hover `#2dd4bf`, translucent tints `--accent-jade-50/100/200`. Use the `teal-*` scale or the tokens — never `cyan-*`.
+> - **Accent:** jade/teal — `--accent-jade #14b8a6`, hover `#2dd4bf`, translucent tints `--accent-jade-50/100/200`. Use the `teal-*` Tailwind scale or the tokens — never `cyan-*`.
 > - **Shells:** both the dashboard and platform sidebars are dark (`--brand-sidebar #070908`); active states use translucent jade.
 > - **One title per page:** the body owns the page H1 (`AppPageHeader` / `PlatformPageHeader`); the top bar is a quiet breadcrumb (workspace context + actions) and must never repeat the title.
-> - **Logo:** the Rekall-IQ "R" monogram is an inline SVG (`src/components/brand/BrandLogo.tsx` → `RekallMark`); favicon at `public/brand/rekall-icon.svg`. There is no raster logo asset.
+> - **Logo:** in-app mark is the inline SVG `RekallMark` in `src/components/brand/BrandLogo.tsx`. Favicon: `public/brand/rekall-icon.svg`. Raster `rekall-mark.png` is retained only for email HTML and apple-touch / OG contexts where SVG is impractical.
 > - **Radii:** `rounded-lg`/`rounded-xl`, denser spacing, subtle shadows — an "app" feel, not pill-heavy marketing.
-> - `<html class="dark">`; tokens live in `app/globals.css` `:root`; shared classes (`admin-shell-card`, `app-button-*`, `admin-input`) already follow this.
+> - `<html class="dark">`; tokens live in `app/globals.css` `:root` — the **single** token source. There is no separate `.dark` override block (the product is unified dark; `:root` already carries the dark values, so a `.dark` block would only duplicate and drift). Shared classes (`admin-shell-card`, `app-button-*`, `admin-input`) and `AppButton` tones follow these tokens and must stay in sync.
 >
-> The legacy v1 (navy `#0F172A` + cyan) **and** the interim light PipesHub direction are both retired. Any section below that describes a light canvas, white surfaces, or a light dashboard sidebar is historical — the dark tokens above govern.
+> The legacy v1 (navy `#0F172A` + cyan) **and** the interim light PipesHub direction are both retired. Body sections below match this dark contract.
 
 This file is the permanent visual design contract for Rekall-IQ.
 
@@ -53,61 +53,60 @@ Rekall-IQ should not sound like a speculative AI product promising too much. It 
 
 ## 3. Visual Theme & Atmosphere
 
-The Rekall-IQ interface uses light workspace surfaces with a dark navy sidebar anchor.
+Rekall-IQ is a **unified dark product**. Landing, auth, dashboard, help, and platform console share one olive-tinted dark canvas.
 
 Primary atmosphere:
 
-- Light application background.
-- White cards and panels.
-- Soft slate borders.
-- Dark navy navigation surfaces.
-- Controlled teal/cyan accents.
-- Clear status colors for success, warning, and error.
-- Minimal shadows.
-- Minimal gradients.
+- Near-black olive canvas (`--canvas #0a0c0b`).
+- Raised surfaces (`--surface`, `--surface-2`) for cards, tables, dialogs, and panels.
+- Hairline borders (`--line #242a26`) — depth from tone, not heavy shadows.
+- Dark sidebars (`--brand-sidebar #070908`) with translucent-jade active states.
+- Jade/teal accent only for focus, CTAs, active nav, and trust markers.
+- Clear semantic status colors (emerald / amber / red) on dark surfaces.
+- Minimal shadows; restrained landing glow only on marketing hero moments.
 
-The product may use subtle glow or gradient accents on public landing pages, but authenticated dashboard pages should stay restrained and work-focused.
+Authenticated surfaces stay work-focused: dense enough for operators, calm enough for non-technical viewers.
 
 Avoid:
 
-- Cinematic black sections inside dashboards.
-- Random gradients.
-- Decorative blobs or orbs.
-- Heavy glassmorphism.
-- Overly large card stacks.
-- Generic AI dashboard styling.
+- Light/white dashboard canvases or light sidebars.
+- `cyan-*` Tailwind utilities (use `teal-*` or `--accent-jade*`).
+- Random gradients, decorative blobs, orbs, or heavy glassmorphism inside the app.
+- Oversized marketing card stacks in admin views.
+- Generic neon “AI dashboard” styling.
+- Pill-heavy chrome that fights the denser “app” radius system (`rounded-lg` / `rounded-xl`).
 
 ## 4. Color Palette & Usage
 
-Use a calm slate, navy, teal, and cyan system.
+Canonical tokens live in `app/globals.css` `:root` — the single source (no separate `.dark` block). Prefer CSS variables over hard-coded hex in components.
 
-Primary colors:
-
-- App background: `slate-50`, `#f8fafc`, or current Rekall-IQ soft background `#f4f7fb`.
-- Card surface: `white`, `#ffffff`.
-- Muted surface: `slate-50`, `#f8fafc`.
-- Border: `slate-200`, `#e2e8f0`.
-- Soft border: `slate-100`, `#f1f5f9`.
-- Text primary: `slate-950` or `slate-900`.
-- Text secondary: `slate-500` or `slate-600`.
-- Text muted: `slate-400`.
-- Navy brand: `#0d1f35`, `#10233b`, `#0f172a`.
-- Cyan accent: `cyan-500`, `#06b6d4`, `#22d3ee`.
-- Teal accent: `teal-500`, `#14b8a6`.
-- Success: `emerald-600`, `emerald-50`, `emerald-200`.
-- Warning: `amber-600`, `amber-50`, `amber-200`.
-- Error/destructive: `red-600`, `red-50`, `red-200`.
+| Role | Token | Value |
+|------|--------|--------|
+| Canvas | `--canvas` | `#0a0c0b` |
+| Soft canvas | `--canvas-soft` | `#101412` |
+| Surface | `--surface` | `#141816` |
+| Raised surface | `--surface-2` | `#1c211e` |
+| Border | `--line` | `#242a26` |
+| Soft border | `--line-soft` | `#1b201d` |
+| Text primary | `--ink` | `#f3f5f4` |
+| Text secondary | `--ink-soft` | `#b2bab5` |
+| Text muted | `--ink-muted` | `#7b847e` |
+| Accent | `--accent-jade` | `#14b8a6` |
+| Accent hover | `--accent-jade-hover` | `#2dd4bf` |
+| Accent tints | `--accent-jade-50/100/200` | translucent jade |
+| Sidebar | `--brand-sidebar` | `#070908` |
+| Success | emerald scale on dark | ready / active / completed |
+| Warning | amber scale on dark | processing / trial / attention |
+| Destructive | red scale on dark | failed / suspend / delete |
 
 Usage rules:
 
-- Use navy for sidebars, high-priority shell anchors, and primary dark buttons.
-- Use cyan/teal sparingly for focus states, active navigation, selected states, source trust markers, and important CTAs.
-- Use white for cards, tables, dialogs, and forms.
-- Use slate backgrounds for page canvases and secondary panels.
-- Use emerald only for success and ready/completed states.
-- Use amber only for warnings, trials, or attention states.
-- Use red only for destructive actions, failed states, and blocking errors.
-- Do not make pages dominated by cyan, teal, or navy. These are accents and anchors, not the entire canvas.
+- Sidebars and shell anchors use `--brand-sidebar` / `--canvas-soft`, never light navy panels.
+- Primary CTAs use jade fill with dark ink text (`#04110e`) for contrast — see `.app-button-primary` and `AppButton` tone `primary`.
+- Cards, tables, dialogs, and forms use `--surface` / `--surface-2`, not white.
+- Jade is an accent, not a page fill. Most UI remains neutral olive-gray.
+- Never use `cyan-*` for brand chrome.
+- Status colors stay semantic and sparse.
 
 ## 5. Typography Rules
 
@@ -149,6 +148,14 @@ Rules:
 
 Rekall-IQ layouts should be spacious enough to breathe but dense enough for repeated workplace use.
 
+App shell (shared, `src/components/shell/`):
+
+- Sidebar navigation is **grouped into labeled sections** (Workspace / Insights / Administration in the dashboard; Monitor / Operations / Administration in the platform console) — never a long flat list.
+- **Command palette** (`CommandPalette.tsx`, cmdk): opened with `Cmd+K` / `Ctrl+K` on every authenticated surface. Group commands under `Go to` (page navigation) and `Actions` (new chat, upload, notifications). Use sentence-case labels and `aria-selected` styling; close on navigation.
+- **Profile menu** (`ProfileMenu.tsx`): one dropdown from the sidebar footer — email/role header, Account, Help & Guides, Sign out. No separate full-width Sign Out button competing with Account.
+- **Workspace switcher** (`WorkspaceSwitcher.tsx`): compact context row in the sidebar. Platform admins get a dropdown with a `Platform console` jump; everyone else sees a static row (users belong to a single workspace).
+- Keep sidebar group labels as small uppercase eyebrows (`text-[10px]`, `tracking-[0.2em]`, `--ink-muted`) and nav items sentence-case.
+
 Page layout:
 
 - Main dashboard content should generally use `max-w-7xl`.
@@ -180,17 +187,18 @@ Use existing shared components before creating new visual patterns.
 
 ### AppButton
 
-- Primary buttons use navy background and white text.
-- Secondary buttons use white background, slate border, and slate text.
-- Subtle buttons use cyan/teal-tinted surfaces only when emphasis is needed.
-- Destructive buttons use red-tinted surfaces or red text.
-- Buttons should include icons when they trigger clear actions such as upload, delete, search, copy, send, new chat, or settings.
-- Disabled states must visibly reduce contrast and block pointer action.
+- Primary: jade fill (`--accent-jade`) with dark text `#04110e`; hover `--accent-jade-hover`.
+- Secondary: `--surface` fill, `--line` border, `--ink` / `--ink-soft` text.
+- Subtle: translucent jade surface (`--accent-jade-50`) with jade text.
+- Destructive: red-tinted surface or red text on dark.
+- Prefer shared classes (`.app-button-*`) or `AppButton` — keep both in sync.
+- Include icons for clear actions (upload, delete, search, copy, send, new chat).
+- Disabled states must reduce contrast and block pointer action.
 - Button text should be short and action-oriented.
 
 ### AppCard
 
-- Use white background, slate border, subtle shadow.
+- Use `--surface` background, `--line` border, subtle `--brand-shadow`.
 - Keep cards compact.
 - Use cards for stats, repeated items, data groups, and contained tools.
 - Avoid oversized decorative cards.
@@ -242,9 +250,9 @@ Use existing shared components before creating new visual patterns.
 
 ### Form Inputs
 
-- Inputs should use white or slate-50 backgrounds, slate borders, and cyan focus rings.
-- Labels should be clear and business-friendly.
-- Helper text should be short.
+- Inputs use `.admin-input`: `--canvas-soft` background, `--line` border, jade focus ring (`--accent-jade-100`).
+- Labels should be clear and business-friendly; prefer sentence case over aggressive all-caps where density allows.
+- Helper text should be short and use `--ink-muted`.
 - Validation errors should be close to the related field.
 
 ### Search and Filter Bars
@@ -434,7 +442,7 @@ Rules:
 
 - Use a narrow reading width.
 - Use clear headings and short paragraphs.
-- Use calm slate text.
+- Use calm `--ink-soft` body text on the dark canvas.
 - Use trust-focused language.
 - Do not overclaim certifications or security guarantees.
 - Be explicit about workspace isolation, document handling, AI processing, and deletion behavior.

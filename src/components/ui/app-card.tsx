@@ -13,7 +13,7 @@ export function AppCard({
   return (
     <Card
       className={cn(
-        "rounded-2xl border border-[var(--line)] bg-[var(--surface)] shadow-[0_14px_28px_rgba(15,23,42,0.05)]",
+        "rounded-lg border border-[var(--line)] bg-[var(--surface)] shadow-none",
         className,
       )}
       {...props}
@@ -27,7 +27,7 @@ export function AppCardHeader({
   className,
   ...props
 }: React.ComponentProps<typeof CardHeader>) {
-  return <CardHeader className={cn("space-y-1 pb-4", className)} {...props} />;
+  return <CardHeader className={cn("space-y-1 pb-3", className)} {...props} />;
 }
 
 export function AppCardTitle({
@@ -37,7 +37,7 @@ export function AppCardTitle({
   return (
     <CardTitle
       className={cn(
-        "text-lg font-bold tracking-tight text-[var(--ink)]",
+        "text-base font-semibold tracking-tight text-[var(--ink)]",
         className,
       )}
       {...props}

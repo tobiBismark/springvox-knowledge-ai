@@ -1,4 +1,4 @@
-const MARK_URL = 'https://rekalliq.springvoxsl.com/brand/rekall-mark.png';
+const MARK_URL = 'https://rekalliq.springvoxsl.com/brand/rekall-mark.jpeg';
 
 function escapeHtml(value: string): string {
   return value
