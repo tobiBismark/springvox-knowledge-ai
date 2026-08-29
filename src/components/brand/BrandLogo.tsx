@@ -1,48 +1,70 @@
 "use client";
 
-import { cn } from '@/src/lib/utils';
-
-const MARK_SRC = '/brand/rekall-mark.png';
+import { cn } from "@/src/lib/utils";
 
 type BrandLogoProps = {
-  variant?: 'full' | 'mark';
-  /** Surface the logo sits on. Kept for API compatibility; the wordmark uses theme tokens so it stays readable in either case. */
-  theme?: 'light' | 'dark';
+  variant?: "full" | "mark";
+  /** Kept for API compatibility; wordmark uses theme tokens. */
+  theme?: "light" | "dark";
   className?: string;
   imageClassName?: string;
   fallbackClassName?: string;
 };
 
+type RekallIQMarkProps = {
+  className?: string;
+  title?: string;
+};
+
 /**
- * The Rekall-IQ brand. The mark is the transparent magnifying-glass "R" asset
- * (`public/brand/rekall-mark.png`); the full variant pairs it with the wordmark.
+ * Rekall-IQ — primary logo using the provided brand image.
+ */
+export function RekallIQMark({
+  className,
+  title,
+}: RekallIQMarkProps) {
+  return (
+    <img
+      src="/brand/rekall-logo.png"
+      alt={title ?? "Rekall-IQ"}
+      className={cn("shrink-0", className)}
+      role={title ? "img" : "presentation"}
+      aria-hidden={title ? undefined : true}
+      aria-label={title}
+    />
+  );
+}
+
+/**
+ * The Rekall-IQ brand. In-app mark uses `/brand/rekall-logo.png`.
+ * Raster `/brand/rekall-mark.jpeg` remains for email / apple-touch only.
  */
 export function BrandLogo({
-  variant = 'full',
-  theme = 'dark',
+  variant = "full",
+  theme = "dark",
   className,
   imageClassName,
   fallbackClassName,
 }: BrandLogoProps) {
   void theme;
 
-  if (variant === 'mark') {
+  if (variant === "mark") {
     return (
-      <div className={cn('flex items-center justify-center', className)}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={MARK_SRC} alt="" aria-hidden className={cn('h-full w-full object-contain', imageClassName)} />
+      <div className={cn("flex items-center justify-center", className)}>
+        <RekallIQMark className={cn("h-full w-full", imageClassName)} />
       </div>
     );
   }
 
   return (
-    <div className={cn('flex items-center gap-2.5', className)}>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={MARK_SRC} alt="" aria-hidden className="h-9 w-9 shrink-0 object-contain" />
+    <div className={cn("flex items-center gap-2.5", className)}>
+      <RekallIQMark
+        className={cn("h-9 w-9 shrink-0", imageClassName)}
+      />
       <span className="text-[18px] font-bold leading-none tracking-tight text-[var(--ink)] sm:text-[19px]">
         Rekall<span className="text-[var(--accent-jade)]">-IQ</span>
       </span>
-      <span className={cn('sr-only', fallbackClassName)}>Rekall-IQ</span>
+      <span className={cn("sr-only", fallbackClassName)}>Rekall-IQ</span>
     </div>
   );
 }

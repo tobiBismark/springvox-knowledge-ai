@@ -21,27 +21,27 @@ export function StatCard({
 }) {
   return (
     <AppCard className={cn(className)}>
-      <AppCardContent className="p-4 sm:p-5">
-        <div className="mb-3 flex items-center justify-between gap-3">
-          {Icon ? (
-            <div className="rounded-lg border border-[var(--accent-jade-100)] bg-[var(--accent-jade-50)] p-2 text-[var(--accent-jade)]">
-              <Icon size={16} />
-            </div>
-          ) : (
-            <div />
-          )}
-          {meta ? (
-            <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--ink-muted)]">
-              {meta}
-            </div>
-          ) : null}
+      <AppCardContent className="flex items-center gap-3 px-4 py-3">
+        {Icon ? (
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-[var(--line)] bg-[var(--canvas-soft)] text-[var(--accent-jade)]">
+            <Icon size={15} />
+          </div>
+        ) : null}
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--ink-muted)]">
+            {label}
+          </p>
+          <div className="mt-1 flex items-baseline justify-between gap-3">
+            <h3 className="text-lg font-semibold tracking-tight text-[var(--ink)]">
+              {value}
+            </h3>
+            {meta ? (
+              <div className="truncate text-[10px] font-medium text-[var(--ink-muted)]">
+                {meta}
+              </div>
+            ) : null}
+          </div>
         </div>
-        <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--ink-muted)]">
-          {label}
-        </p>
-        <h3 className="mt-1 text-2xl font-bold tracking-tight text-[var(--ink)]">
-          {value}
-        </h3>
       </AppCardContent>
     </AppCard>
   );
