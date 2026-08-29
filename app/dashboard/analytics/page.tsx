@@ -153,8 +153,8 @@ export default function AnalyticsPage() {
     data.feedbackSummary.recentNegativeFeedback.length || 0;
 
   const pieData = [
-    { name: "Answers with sources", value: sourceBacked, color: "#0f172a" },
-    { name: "No answer found", value: fallback, color: "#cbd5e1" },
+    { name: "Answers with sources", value: sourceBacked, color: "var(--accent-jade)" },
+    { name: "No answer found", value: fallback, color: "var(--line)" },
   ];
 
   const userSummaryData = [
@@ -286,49 +286,51 @@ export default function AnalyticsPage() {
                     <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
                       <stop
                         offset="5%"
-                        stopColor="#0f172a"
-                        stopOpacity={0.12}
+                        stopColor="var(--accent-jade)"
+                        stopOpacity={0.18}
                       />
-                      <stop offset="95%" stopColor="#0f172a" stopOpacity={0} />
+                      <stop offset="95%" stopColor="var(--accent-jade)" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid
                     strokeDasharray="3 3"
                     vertical={false}
-                    stroke="#f1f5f9"
+                    stroke="var(--line-soft)"
                   />
                   <XAxis
                     dataKey="date"
                     axisLine={false}
                     tickLine={false}
-                    tick={{ fontSize: 10, fontWeight: 700, fill: "#94a3b8" }}
+                    tick={{ fontSize: 10, fontWeight: 700, fill: "var(--ink-muted)" }}
                     dy={8}
                   />
                   <YAxis
                     axisLine={false}
                     tickLine={false}
                     allowDecimals={false}
-                    tick={{ fontSize: 10, fontWeight: 700, fill: "#94a3b8" }}
+                    tick={{ fontSize: 10, fontWeight: 700, fill: "var(--ink-muted)" }}
                   />
                   <Tooltip
                     contentStyle={{
-                      borderRadius: "18px",
-                      border: "1px solid #e2e8f0",
-                      boxShadow: "0 10px 20px rgba(15,23,42,0.08)",
+                      borderRadius: "14px",
+                      border: "1px solid var(--line)",
+                      backgroundColor: "var(--surface)",
+                      boxShadow: "var(--brand-shadow)",
                       fontSize: "12px",
+                      color: "var(--ink)",
                     }}
                   />
                   <Area
                     type="monotone"
                     dataKey="count"
-                    stroke="#0f172a"
+                    stroke="var(--accent-jade)"
                     strokeWidth={2.5}
                     fillOpacity={1}
                     fill="url(#colorCount)"
                     activeDot={{
                       r: 5,
-                      fill: "#0f172a",
-                      stroke: "#fff",
+                      fill: "var(--accent-jade-hover)",
+                      stroke: "var(--surface)",
                       strokeWidth: 2,
                     }}
                   />
@@ -365,7 +367,16 @@ export default function AnalyticsPage() {
                       <Cell key={`${entry.name}-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip />
+                  <Tooltip
+                    contentStyle={{
+                      borderRadius: "14px",
+                      border: "1px solid var(--line)",
+                      backgroundColor: "var(--surface)",
+                      boxShadow: "var(--brand-shadow)",
+                      fontSize: "12px",
+                      color: "var(--ink)",
+                    }}
+                  />
                 </PieChart>
               </ResponsiveContainer>
               <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
@@ -419,21 +430,30 @@ export default function AnalyticsPage() {
             <div className="min-w-0">
               <ResponsiveContainer width="100%" height={240} minWidth={1}>
                 <BarChart data={userSummaryData}>
-                  <CartesianGrid vertical={false} stroke="#eef2f7" />
+                  <CartesianGrid vertical={false} stroke="var(--line-soft)" />
                   <XAxis
                     dataKey="label"
                     axisLine={false}
                     tickLine={false}
-                    tick={{ fontSize: 11, fill: "#64748b" }}
+                    tick={{ fontSize: 11, fill: "var(--ink-muted)" }}
                   />
                   <YAxis
                     allowDecimals={false}
                     axisLine={false}
                     tickLine={false}
-                    tick={{ fontSize: 11, fill: "#64748b" }}
+                    tick={{ fontSize: 11, fill: "var(--ink-muted)" }}
                   />
-                  <Tooltip />
-                  <Bar dataKey="value" fill="#14b8a6" radius={[8, 8, 0, 0]} />
+                  <Tooltip
+                    contentStyle={{
+                      borderRadius: "14px",
+                      border: "1px solid var(--line)",
+                      backgroundColor: "var(--surface)",
+                      boxShadow: "var(--brand-shadow)",
+                      fontSize: "12px",
+                      color: "var(--ink)",
+                    }}
+                  />
+                  <Bar dataKey="value" fill="var(--accent-jade)" radius={[8, 8, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -480,7 +500,7 @@ export default function AnalyticsPage() {
                       <th className="pb-3">Date</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-50">
+                  <tbody className="divide-y divide-[var(--line-soft)]">
                     {data.recentQuestions.map((item) => (
                       <tr
                         key={item.id}
@@ -525,7 +545,7 @@ export default function AnalyticsPage() {
                                 "h-1.5 w-1.5 rounded-full",
                                 item.knowledge_gap
                                   ? "bg-red-600"
-                                  : "bg-slate-300",
+                                  : "bg-[var(--ink-muted)]",
                               )}
                             />
                             {item.knowledge_gap ? "Needs review" : "Covered"}

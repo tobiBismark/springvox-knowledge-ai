@@ -8,7 +8,7 @@ export default function LandingPage() {
     '@type': 'Organization',
     name: 'Rekall-IQ',
     url: 'https://rekalliq.springvoxsl.com',
-    logo: 'https://rekalliq.springvoxsl.com/brand/rekall-mark.png',
+    logo: 'https://rekalliq.springvoxsl.com/brand/rekall-mark.jpeg',
     description: 'Enterprise AI knowledge platform that turns documents into instant answers.',
     sameAs: [
       'https://twitter.com/springvox',

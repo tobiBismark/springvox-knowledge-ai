@@ -27,7 +27,7 @@ export default function RegisterPage() {
   return (
     <div className="flex min-h-screen w-full bg-[var(--canvas)]">
       {/* Brand panel — matches /login */}
-      <div className="relative hidden w-[42%] flex-col justify-between overflow-hidden bg-[var(--brand-sidebar)] p-12 text-white lg:sticky lg:top-0 lg:flex lg:h-screen">
+      <div className="relative hidden w-[42%] flex-col justify-between overflow-hidden bg-[var(--brand-sidebar)] p-12 text-white lg:flex lg:min-h-screen">
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0 opacity-90 [background:radial-gradient(circle_at_20%_15%,rgba(20,184,166,0.22),transparent_42%),radial-gradient(circle_at_85%_75%,rgba(13,148,136,0.16),transparent_45%)]"
@@ -42,7 +42,9 @@ export default function RegisterPage() {
 
         <div className="relative max-w-md space-y-8">
           <h1 className="text-3xl font-semibold leading-tight tracking-tight">
-            Set up your company workspace<br />in minutes.
+            Set up your company workspace
+            <br />
+            in minutes.
           </h1>
           <div className="space-y-5">
             {highlights.map((item) => (
@@ -51,15 +53,21 @@ export default function RegisterPage() {
                   <item.icon size={18} />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-white">{item.title}</p>
-                  <p className="mt-1 text-sm leading-6 text-[var(--ink-muted)]">{item.copy}</p>
+                  <p className="text-sm font-semibold text-white">
+                    {item.title}
+                  </p>
+                  <p className="mt-1 text-sm leading-6 text-[var(--ink-muted)]">
+                    {item.copy}
+                  </p>
                 </div>
               </div>
             ))}
           </div>
         </div>
 
-        <p className="relative text-xs text-[var(--ink-muted)]">© 2026 Rekall-IQ</p>
+        <p className="relative text-xs text-[var(--ink-muted)]">
+          © 2026 Rekall-IQ
+        </p>
       </div>
 
       {/* Form panel */}

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useDropzone } from "react-dropzone";
 import {
@@ -29,7 +29,6 @@ import {
 } from "@/components/ui/select";
 import { AppPageHeader } from "@/src/components/shared/AppPageHeader";
 import { AppButton } from "@/src/components/ui/app-button";
-import { StatCard } from "@/src/components/ui/stat-card";
 
 type UploadCollection = { id: string; name: string };
 
@@ -172,16 +171,6 @@ export default function UploadPage() {
   const activeCount = queue.filter((item) => item.status === "uploading" || item.status === "processing").length;
   const completedCount = queue.filter((item) => item.status === "completed").length;
   const failedCount = queue.filter((item) => item.status === "failed").length;
-
-  const queueSummary = useMemo(
-    () => [
-      { label: "Waiting", value: queuedCount },
-      { label: "Active", value: activeCount },
-      { label: "Completed", value: completedCount },
-      { label: "Failed", value: failedCount },
-    ],
-    [activeCount, completedCount, failedCount, queuedCount],
-  );
 
   const updateQueueItem = useCallback((id: string, update: Partial<UploadQueueItem>) => {
     setQueue((current) =>
@@ -385,11 +374,39 @@ export default function UploadPage() {
         subtitle={`Add one or many approved documents your team can ask questions from. ${SUPPORTED_UPLOAD_COPY}.`}
       />
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {queueSummary.map((item) => (
-          <StatCard key={item.label} label={item.label} value={item.value} />
-        ))}
-      </div>
+      {queue.length > 0 ? (
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-xl border border-[var(--line)] bg-[var(--surface)] px-4 py-3 shadow-[var(--brand-shadow)]">
+          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--ink-muted)]">
+            This batch
+          </p>
+          <span className="inline-flex items-center gap-2 text-xs font-semibold text-[var(--ink)]">
+            <span className="h-2 w-2 rounded-full bg-[var(--ink-muted)]" />
+            {queuedCount} waiting
+          </span>
+          <span className="inline-flex items-center gap-2 text-xs font-semibold text-[var(--ink)]">
+            <span className="h-2 w-2 animate-pulse rounded-full bg-amber-400" />
+            {activeCount} active
+          </span>
+          <span className="inline-flex items-center gap-2 text-xs font-semibold text-[var(--ink)]">
+            <span className="h-2 w-2 rounded-full bg-emerald-400" />
+            {completedCount} ready
+          </span>
+          <span className="inline-flex items-center gap-2 text-xs font-semibold text-[var(--ink)]">
+            <span className="h-2 w-2 rounded-full bg-red-400" />
+            {failedCount} failed
+          </span>
+          <span className="flex-1" />
+          {completedCount > 0 && (
+            <button
+              type="button"
+              onClick={clearCompleted}
+              className="text-xs font-semibold text-[var(--ink-muted)] transition-colors hover:text-[var(--ink)]"
+            >
+              Clear completed
+            </button>
+          )}
+        </div>
+      ) : null}
 
       {collections.length > 0 ? (
         <div className="flex flex-col gap-3 rounded-xl border border-[var(--line)] bg-[var(--surface)] p-4 shadow-[var(--brand-shadow)] sm:flex-row sm:items-center sm:justify-between">
@@ -400,7 +417,7 @@ export default function UploadPage() {
             </p>
           </div>
           <Select value={selectedCollectionId} onValueChange={setSelectedCollectionId}>
-            <SelectTrigger className="h-11 w-full rounded-lg border-[var(--line)] bg-[var(--surface)] px-4 text-sm shadow-sm focus-visible:border-teal-400 focus-visible:ring-[var(--accent-jade-100)] sm:w-60">
+            <SelectTrigger className="h-11 w-full rounded-lg border-[var(--line)] bg-[var(--surface)] px-4 text-sm shadow-sm focus-visible:border-[var(--accent-jade)] focus-visible:ring-[var(--accent-jade-100)] sm:w-60">
               <SelectValue placeholder="Unassigned" />
             </SelectTrigger>
             <SelectContent className="rounded-xl border-[var(--line)]">

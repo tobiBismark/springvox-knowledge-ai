@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import { AppButton } from "@/src/components/ui/app-button";
 import { AppCard } from "@/src/components/ui/app-card";
+import { AppPageHeader } from "@/src/components/shared/AppPageHeader";
 import { EmptyState } from "@/src/components/ui/empty-state";
 import { getAccessToken } from "@/src/lib/auth-client";
 import { cn } from "@/src/lib/utils";
@@ -152,39 +153,36 @@ export default function DashboardNotificationsPage() {
 
   return (
     <div className="admin-page">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-[var(--ink)] sm:text-3xl">
-            Notifications
-          </h1>
-          <p className="mt-1.5 max-w-2xl text-sm leading-6 text-[var(--ink-soft)]">
-            Review Rekall-IQ announcements, maintenance notes, billing reminders, and security updates for your workspace.
-          </p>
-        </div>
-        <div className="flex flex-col gap-2 sm:flex-row">
-          <Select value={typeFilter} onValueChange={setTypeFilter}>
-            <SelectTrigger className="h-11 w-full rounded-xl border-[var(--line)] bg-[var(--surface)] px-4 text-sm shadow-sm focus-visible:border-teal-400 focus-visible:ring-[var(--accent-jade-100)] sm:w-52">
-              <SelectValue placeholder="All types" />
-            </SelectTrigger>
-            <SelectContent className="rounded-xl border-[var(--line)]">
-              {typeOptions.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <AppButton
-            tone="secondary"
-            onClick={markAllRead}
-            disabled={savingId === "all" || filteredUnreadCount === 0}
-            className="h-11"
-          >
-            <Check size={16} />
-            Mark all read
-          </AppButton>
-        </div>
-      </div>
+      <AppPageHeader
+        eyebrow="Alerts"
+        title="Notifications"
+        subtitle="Review Rekall-IQ announcements, maintenance notes, billing reminders, and security updates for your workspace."
+        aside={
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Select value={typeFilter} onValueChange={setTypeFilter}>
+              <SelectTrigger className="h-11 w-full rounded-xl border-[var(--line)] bg-[var(--surface)] px-4 text-sm shadow-sm focus-visible:border-[var(--accent-jade)] focus-visible:ring-[var(--accent-jade-100)] sm:w-52">
+                <SelectValue placeholder="All types" />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl border-[var(--line)]">
+                {typeOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <AppButton
+              tone="secondary"
+              onClick={markAllRead}
+              disabled={savingId === "all" || filteredUnreadCount === 0}
+              className="h-11"
+            >
+              <Check size={16} />
+              Mark all read
+            </AppButton>
+          </div>
+        }
+      />
 
       <div className="grid gap-4 sm:grid-cols-3">
         <AppCard className="p-5">
@@ -211,7 +209,23 @@ export default function DashboardNotificationsPage() {
 
       <div className="space-y-3">
         {loading ? (
-          <AppCard className="p-6 text-sm text-[var(--ink-muted)]">Loading notifications...</AppCard>
+          <div className="space-y-3">
+            {[1, 2, 3].map((index) => (
+              <div
+                key={index}
+                className="animate-pulse rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-5"
+              >
+                <div className="flex items-center gap-2">
+                  <div className="h-6 w-20 rounded-full bg-[var(--surface-2)]" />
+                  <div className="h-6 w-14 rounded-full bg-[var(--surface-2)]" />
+                  <div className="h-4 w-24 rounded bg-[var(--surface-2)]" />
+                </div>
+                <div className="mt-3 h-5 w-2/3 rounded bg-[var(--surface-2)]" />
+                <div className="mt-2 h-4 w-full rounded bg-[var(--surface-2)]" />
+                <div className="mt-1 h-4 w-1/2 rounded bg-[var(--surface-2)]" />
+              </div>
+            ))}
+          </div>
         ) : notifications.length === 0 ? (
           <EmptyState
             icon={Inbox}
@@ -237,7 +251,7 @@ export default function DashboardNotificationsPage() {
                       {formatNotificationType(notification.type)}
                     </span>
                     {!notification.is_read ? (
-                      <span className="rounded-full bg-teal-600 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-white">
+                      <span className="rounded-full bg-[var(--accent-jade)] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-[#04110e]">
                         Unread
                       </span>
                     ) : (

@@ -2,7 +2,6 @@
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import ReactMarkdown from "react-markdown";
 import {
   Check,
   ChevronDown,
@@ -11,18 +10,10 @@ import {
   FileText,
   History,
   Loader2,
-  Sliders,
   MessageSquarePlus,
-  Mic,
-  MicOff,
-  Pencil,
-  RefreshCw,
+  PanelLeftClose,
   Search,
-  Send,
   ShieldCheck,
-  Square,
-  ThumbsDown,
-  ThumbsUp,
   Trash2,
   X,
 } from "lucide-react";
@@ -39,20 +30,14 @@ import {
   type UserProfile,
   type WorkspaceSettings,
 } from "@/src/lib/workspace";
-import { AppPageHeader } from "@/src/components/shared/AppPageHeader";
 import { AppButton } from "@/src/components/ui/app-button";
 import { BrandLogo } from "@/src/components/brand/BrandLogo";
+import { ChatComposer } from "@/src/components/chat/ChatComposer";
+import { ChatMessage } from "@/src/components/chat/ChatMessage";
 import { ConfirmDialog } from "@/src/components/ui/confirm-dialog";
 import { EmptyState } from "@/src/components/ui/empty-state";
 import { FilePreviewDrawer } from "@/src/components/file-preview/FilePreviewDrawer";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Sheet,
   SheetContent,
@@ -60,10 +45,9 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 
-type Citation = {
+export type Citation = {
   filename: string;
   chunk_index: number;
   preview: string;
@@ -91,7 +75,7 @@ type ChatSessionSummary = {
   updated_at: string;
 };
 
-type Message = {
+export type Message = {
   id: string;
   role: "user" | "ai";
   content: string;
@@ -110,12 +94,6 @@ const EMPTY_PROMPTS = [
   "What services are mentioned?",
   "What policies should I know?",
   "What are the key points?",
-];
-
-const EXTRA_FEEDBACK_OPTIONS: FeedbackRating[] = [
-  "wrong",
-  "outdated",
-  "needs_more_detail",
 ];
 
 const ANSWER_MODES = [
@@ -152,7 +130,8 @@ function useAutoResizeTextarea({
   );
 
   useEffect(() => {
-    if (textareaRef.current) textareaRef.current.style.height = `${minHeight}px`;
+    if (textareaRef.current)
+      textareaRef.current.style.height = `${minHeight}px`;
   }, [minHeight]);
 
   return { textareaRef, adjustHeight };
@@ -189,25 +168,39 @@ export default function ChatPage() {
   const [copiedIndex, setCopiedIndex] = useState<string | null>(null);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [selectedSource, setSelectedSource] = useState<Citation | null>(null);
-  const [previewDoc, setPreviewDoc] = useState<{ id: string; filename: string } | null>(null);
+  const [previewDoc, setPreviewDoc] = useState<{
+    id: string;
+    filename: string;
+  } | null>(null);
   const [sourceDetails, setSourceDetails] = useState<Citation | null>(null);
   const [sourceLoading, setSourceLoading] = useState(false);
   const [sourceError, setSourceError] = useState<string | null>(null);
   const [retryQuestion, setRetryQuestion] = useState<string | null>(null);
   const [activeMessageId, setActiveMessageId] = useState<string | null>(null);
-  const [feedbackLoadingMessageId, setFeedbackLoadingMessageId] = useState<string | null>(null);
-  const [expandedFeedbackMessageId, setExpandedFeedbackMessageId] = useState<string | null>(null);
+  const [feedbackLoadingMessageId, setFeedbackLoadingMessageId] = useState<
+    string | null
+  >(null);
+  const [expandedFeedbackMessageId, setExpandedFeedbackMessageId] = useState<
+    string | null
+  >(null);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [sessionSearch, setSessionSearch] = useState("");
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [desktopHistoryOpen, setDesktopHistoryOpen] = useState(true);
   const [deleteSessionId, setDeleteSessionId] = useState<string | null>(null);
   const [historyError, setHistoryError] = useState<string | null>(null);
   const [inputFocused, setInputFocused] = useState(false);
-  const [answerMode, setAnswerMode] = useState<(typeof ANSWER_MODES)[number]["value"]>("detailed");
-  const [collections, setCollections] = useState<Array<{ id: string; name: string }>>([]);
+  const [answerMode, setAnswerMode] =
+    useState<(typeof ANSWER_MODES)[number]["value"]>("detailed");
+  const [collections, setCollections] = useState<
+    Array<{ id: string; name: string }>
+  >([]);
   const [scopeCollectionId, setScopeCollectionId] = useState<string>("all");
   const [isRecording, setIsRecording] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(false);
+  const [expandedSourceMessageId, setExpandedSourceMessageId] = useState<
+    string | null
+  >(null);
   const recognitionRef = useRef<any>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const startedAtRef = useRef<number | null>(null);
@@ -236,7 +229,8 @@ export default function ChatPage() {
     if (typeof window === "undefined") return;
 
     const SpeechRecognition =
-      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      (window as any).SpeechRecognition ||
+      (window as any).webkitSpeechRecognition;
 
     if (SpeechRecognition) {
       setSpeechSupported(true);
@@ -277,9 +271,13 @@ export default function ChatPage() {
         setIsRecording(false);
 
         if (event.error === "not-allowed") {
-          toast.error("Microphone permission denied. Please allow microphone access in your browser settings.");
+          toast.error(
+            "Microphone permission denied. Please allow microphone access in your browser settings.",
+          );
         } else if (event.error === "network") {
-          toast.error("Network error during speech recognition. Please check your network connection.");
+          toast.error(
+            "Network error during speech recognition. Please check your network connection.",
+          );
         }
       };
 
@@ -303,7 +301,9 @@ export default function ChatPage() {
 
   const toggleRecording = () => {
     if (!speechSupported) {
-      toast.error("Speech recognition is not supported on this browser. Please try using Chrome, Edge, or Safari.");
+      toast.error(
+        "Speech recognition is not supported on this browser. Please try using Chrome, Edge, or Safari.",
+      );
       return;
     }
     if (!recognitionRef.current) return;
@@ -335,7 +335,9 @@ export default function ChatPage() {
         await loadSessions();
       } catch (error) {
         setHistoryError(
-          error instanceof Error ? error.message : "Unable to load chats right now.",
+          error instanceof Error
+            ? error.message
+            : "Unable to load chats right now.",
         );
       } finally {
         setHistoryLoading(false);
@@ -357,7 +359,10 @@ export default function ChatPage() {
         if (!res.ok) return;
         const data = await res.json();
         setCollections(
-          (data.collections || []).map((c: { id: string; name: string }) => ({ id: c.id, name: c.name })),
+          (data.collections || []).map((c: { id: string; name: string }) => ({
+            id: c.id,
+            name: c.name,
+          })),
         );
       } catch {
         // Collection scoping is optional.
@@ -475,41 +480,14 @@ export default function ChatPage() {
   };
 
   const createNewChat = async () => {
-    try {
-      setHistoryError(null);
-      const accessToken = await getAccessToken();
-      if (!accessToken) {
-        throw new Error("Authentication session expired");
-      }
-
-      const response = await fetch("/api/chat/sessions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({}),
-      });
-
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to create chat");
-      }
-
-      setActiveSessionId(data.session.id);
-      setMessages([]);
-      setRetryQuestion(null);
-      setInput("");
-      adjustHeight(true);
-      setHistoryOpen(false);
-      await loadSessions();
-      notifySessionSidebar();
-      router.replace(`/dashboard/chat?session=${data.session.id}`);
-    } catch (error) {
-      setHistoryError(
-        error instanceof Error ? error.message : "Unable to create a new chat.",
-      );
-    }
+    setHistoryError(null);
+    setActiveSessionId(null);
+    setMessages([]);
+    setRetryQuestion(null);
+    setInput("");
+    adjustHeight(true);
+    setHistoryOpen(false);
+    router.replace("/dashboard/chat");
   };
 
   const deleteSession = async (sessionId: string) => {
@@ -558,7 +536,10 @@ export default function ChatPage() {
     );
   };
 
-  const updateMessage = (messageId: string, updater: (message: Message) => Message) => {
+  const updateMessage = (
+    messageId: string,
+    updater: (message: Message) => Message,
+  ) => {
     setMessages((currentMessages) =>
       currentMessages.map((message) =>
         message.id === messageId ? updater(message) : message,
@@ -652,10 +633,13 @@ export default function ChatPage() {
     stopTypingBuffer();
 
     const generateId = () => {
-      if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+      if (typeof crypto !== "undefined" && crypto.randomUUID) {
         return crypto.randomUUID();
       }
-      return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+      return (
+        Math.random().toString(36).substring(2, 15) +
+        Math.random().toString(36).substring(2, 15)
+      );
     };
 
     const userMessageId = generateId();
@@ -664,7 +648,12 @@ export default function ChatPage() {
     setMessages((currentMessages) => [
       ...currentMessages,
       { id: userMessageId, role: "user", content: question },
-      { id: assistantMessageId, role: "ai", content: "", statusMessage: "Thinking..." },
+      {
+        id: assistantMessageId,
+        role: "ai",
+        content: "",
+        statusMessage: "Thinking...",
+      },
     ]);
     setActiveMessageId(assistantMessageId);
     setRetryQuestion(question);
@@ -822,10 +811,16 @@ export default function ChatPage() {
   // Find the user question that produced a given assistant message and re-ask it.
   const handleRegenerate = (assistantMessageId: string) => {
     if (loading) return;
-    const index = messages.findIndex((message) => message.id === assistantMessageId);
+    const index = messages.findIndex(
+      (message) => message.id === assistantMessageId,
+    );
     if (index <= 0) return;
     const priorQuestion = messages[index - 1];
-    if (!priorQuestion || priorQuestion.role !== "user" || !priorQuestion.content.trim()) {
+    if (
+      !priorQuestion ||
+      priorQuestion.role !== "user" ||
+      !priorQuestion.content.trim()
+    ) {
       return;
     }
     void handleSend(undefined, priorQuestion.content);
@@ -874,7 +869,9 @@ export default function ChatPage() {
       setSourceDetails(data.source as Citation);
     } catch (error) {
       setSourceError(
-        error instanceof Error ? error.message : "Unable to load source details",
+        error instanceof Error
+          ? error.message
+          : "Unable to load source details",
       );
     } finally {
       setSourceLoading(false);
@@ -938,7 +935,9 @@ export default function ChatPage() {
     workspace?.assistant_name ||
     (isViewer ? "Rekall-IQ Assistant" : "Rekall-IQ");
   const companyName = workspace?.name || "your company";
-  const activeSession = sessions.find((session) => session.id === activeSessionId) || null;
+  const activeSession =
+    sessions.find((session) => session.id === activeSessionId) || null;
+
   const filteredSessions = sessions.filter((session) =>
     session.title.toLowerCase().includes(sessionSearch.toLowerCase()),
   );
@@ -962,11 +961,39 @@ export default function ChatPage() {
     <>
       <div className={cn("admin-page", isViewer && "px-0")}>
         {!isViewer && (
-          <AppPageHeader
-            eyebrow=""
-            title="Ask Questions"
-            subtitle={`Ask questions from ${companyName}'s approved documents.`}
-          />
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-2.5">
+              <button
+                type="button"
+                onClick={() => setDesktopHistoryOpen((open) => !open)}
+                aria-expanded={desktopHistoryOpen}
+                aria-label={
+                  desktopHistoryOpen ? "Hide chat history" : "Show chat history"
+                }
+                className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[var(--line)] bg-[var(--surface)] text-[var(--ink-soft)] shadow-sm transition hover:bg-[var(--surface-2)] hover:text-[var(--ink)] lg:inline-flex"
+              >
+                <PanelLeftClose size={16} />
+              </button>
+              <div className="min-w-0">
+                <h1 className="truncate text-lg font-semibold tracking-tight text-[var(--ink)]">
+                  {activeSessionTitle}
+                </h1>
+                <p className="truncate text-xs text-[var(--ink-muted)]">
+                  Ask questions from {companyName}&apos;s approved documents.
+                </p>
+              </div>
+            </div>
+            <AppButton
+              type="button"
+              tone="secondary"
+              onClick={createNewChat}
+              disabled={loading}
+              className="shrink-0"
+            >
+              <MessageSquarePlus size={16} />
+              New chat
+            </AppButton>
+          </div>
         )}
 
         <div
@@ -976,35 +1003,35 @@ export default function ChatPage() {
               : "flex flex-col gap-4 lg:flex-row lg:items-start lg:gap-6",
           )}
         >
-          {!isViewer && (
+          {!isViewer && desktopHistoryOpen && (
             <aside className="hidden lg:sticky lg:top-6 lg:block lg:w-[18.5rem] lg:shrink-0">
               {historyPanel}
             </aside>
           )}
 
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             {!isViewer && (
-            <div className="mb-3 flex items-center justify-between gap-3 lg:hidden">
-              <button
-                type="button"
-                onClick={() => setHistoryOpen(true)}
-                aria-label="Open recent chats"
-                className="inline-flex h-11 items-center gap-2 rounded-xl border border-[var(--line)] bg-[var(--surface)] px-4 text-sm font-semibold text-[var(--ink-soft)] shadow-sm transition hover:bg-[var(--surface-2)]"
-              >
-                <History size={16} />
-                Recent Chats
-              </button>
-              <AppButton
-                type="button"
-                tone="secondary"
-                onClick={createNewChat}
-                disabled={loading}
-                className="shrink-0"
-              >
-                <MessageSquarePlus size={16} />
-                New Chat
-              </AppButton>
-            </div>
+              <div className="mb-3 flex items-center justify-between gap-3 lg:hidden">
+                <button
+                  type="button"
+                  onClick={() => setHistoryOpen(true)}
+                  aria-label="Open recent chats"
+                  className="inline-flex h-11 items-center gap-2 rounded-xl border border-[var(--line)] bg-[var(--surface)] px-4 text-sm font-semibold text-[var(--ink-soft)] shadow-sm transition hover:bg-[var(--surface-2)]"
+                >
+                  <History size={16} />
+                  Recent Chats
+                </button>
+                <AppButton
+                  type="button"
+                  tone="secondary"
+                  onClick={createNewChat}
+                  disabled={loading}
+                  className="shrink-0"
+                >
+                  <MessageSquarePlus size={16} />
+                  New Chat
+                </AppButton>
+              </div>
             )}
 
             {historyError ? (
@@ -1013,12 +1040,14 @@ export default function ChatPage() {
               </div>
             ) : null}
 
-            <div className={cn(
-              "relative isolate flex min-w-0 flex-col overflow-hidden",
-              isViewer
-                ? "mx-auto h-[calc(100dvh-112px)] w-full"
-                : "mx-auto h-[calc(100dvh-150px)] w-full sm:h-[calc(100dvh-160px)]"
-            )}>
+            <div
+              className={cn(
+                "relative isolate flex min-w-0 flex-col overflow-hidden",
+                isViewer
+                  ? "mx-auto h-[calc(100dvh-112px)] w-full"
+                  : "mx-auto h-[calc(100dvh-150px)] w-full sm:h-[calc(100dvh-160px)]",
+              )}
+            >
               <div
                 ref={scrollRef}
                 role="log"
@@ -1026,24 +1055,31 @@ export default function ChatPage() {
                 aria-label="Chat conversation"
                 className={cn(
                   "mx-auto w-full max-w-3xl flex-1 overflow-y-auto scrollbar-hide px-4",
-                  isViewer
-                    ? "pb-28 pt-4 sm:pb-32"
-                    : "pb-32 pt-5 sm:pb-36"
+                  isViewer ? "pb-28 pt-4 sm:pb-32" : "pb-32 pt-5 sm:pb-36",
                 )}
               >
-                {historyLoading ? (
-                  <div className="flex items-center gap-3 pt-10 text-sm text-[var(--ink-muted)]">
-                    <Loader2 size={18} className="animate-spin text-[var(--accent-jade)]" />
-                    Loading your chat...
+                {historyLoading && messages.length === 0 ? (
+                  <div className="flex h-full flex-col items-center justify-center text-center">
+                    <div className="flex items-center gap-3 text-sm text-[var(--ink-muted)]">
+                      <Loader2
+                        size={18}
+                        className="animate-spin text-[var(--accent-jade)]"
+                      />
+                      <span>Loading chat…</span>
+                    </div>
                   </div>
                 ) : messages.length === 0 ? (
-                  <div className={cn(
-                    "flex h-full flex-col items-center justify-center text-center",
-                    isViewer ? "space-y-5 px-4 pt-6" : "space-y-5 px-4 pt-6"
-                  )}>
-                    <div className={cn(
-                      "flex h-16 w-16 items-center justify-center rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-3 shadow-[var(--brand-shadow)]"
-                    )}>
+                  <div
+                    className={cn(
+                      "flex h-full flex-col items-center justify-center text-center",
+                      isViewer ? "space-y-5 px-4 pt-6" : "space-y-5 px-4 pt-6",
+                    )}
+                  >
+                    <div
+                      className={cn(
+                        "flex h-16 w-16 items-center justify-center rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-3 shadow-[var(--brand-shadow)]",
+                      )}
+                    >
                       <BrandLogo
                         variant="mark"
                         theme="dark"
@@ -1052,29 +1088,44 @@ export default function ChatPage() {
                       />
                     </div>
                     <div className="space-y-3">
-                      <h2 className={cn(
-                        "font-semibold tracking-tight text-[var(--ink)]",
-                        isViewer ? "text-2xl sm:text-3xl" : "text-2xl sm:text-3xl"
-                      )}>
+                      <h2
+                        className={cn(
+                          "font-semibold tracking-tight text-[var(--ink)]",
+                          isViewer
+                            ? "text-2xl sm:text-3xl"
+                            : "text-2xl sm:text-3xl",
+                        )}
+                      >
                         {messages.length === 0 && !activeSessionId ? (
                           <>
-                            Hi, I&apos;m <span className="text-[var(--accent-jade)]">{assistantName}</span>.
+                            Hi, I&apos;m{" "}
+                            <span className="text-[var(--accent-jade)]">
+                              {assistantName}
+                            </span>
+                            .
                           </>
                         ) : (
                           "Ask your first question"
                         )}
                       </h2>
-                      <p className={cn(
-                        "max-w-xl leading-7 text-[var(--ink-muted)]",
-                        isViewer ? "text-sm sm:text-base" : "text-sm sm:text-base"
-                      )}>
-                        Ask questions from your organisation&apos;s approved documents.
+                      <p
+                        className={cn(
+                          "max-w-xl leading-7 text-[var(--ink-muted)]",
+                          isViewer
+                            ? "text-sm sm:text-base"
+                            : "text-sm sm:text-base",
+                        )}
+                      >
+                        Ask questions from your organisation&apos;s approved
+                        documents.
                       </p>
                     </div>
-                    <div className={cn(
-                      "flex w-full max-w-3xl flex-wrap gap-2 sm:gap-3",
-                      isViewer ? "justify-center" : "justify-center"
-                    )}>
+                    <div
+                      className={cn(
+                        "flex w-full max-w-3xl flex-wrap gap-2 sm:gap-3",
+                        isViewer ? "justify-center" : "justify-center",
+                      )}
+                    >
                       {EMPTY_PROMPTS.map((prompt) => (
                         <button
                           type="button"
@@ -1082,7 +1133,9 @@ export default function ChatPage() {
                           onClick={() => setInput(prompt)}
                           className={cn(
                             "rounded-full border border-[var(--line)] bg-[var(--surface)] text-[var(--ink-soft)] transition-all hover:border-[var(--accent-jade-100)] hover:bg-[var(--accent-jade-50)] hover:text-[var(--accent-jade-hover)]",
-                            isViewer ? "px-4 py-2.5 text-sm shadow-sm" : "px-4 py-2.5 text-sm shadow-sm"
+                            isViewer
+                              ? "px-4 py-2.5 text-sm shadow-sm"
+                              : "px-4 py-2.5 text-sm shadow-sm",
                           )}
                         >
                           {prompt}
@@ -1094,348 +1147,116 @@ export default function ChatPage() {
                   messages.map((message) => (
                     <div
                       key={message.id}
-                      className="mb-7 animate-in fade-in slide-in-from-bottom-2 duration-300"
+                      className="mb-8 animate-in fade-in slide-in-from-bottom-2 duration-300"
                     >
-                      <div
-                        className={cn(
-                      "min-w-0 space-y-3",
-                      message.role === "user"
-                            ? "ml-auto max-w-[92%] sm:max-w-[70%]"
-                            : "max-w-full",
-                        )}
-                      >
-                        {message.role === "user" ? (
-                          <div className="group/usermsg flex flex-col items-end gap-1">
-                            <div className={cn(
-                              "rounded-2xl rounded-br-md bg-[var(--surface-2)] text-[var(--ink)] shadow-sm",
-                              isViewer ? "px-5 py-3.5 text-[15px] leading-7" : "px-5 py-3.5 text-[15px] leading-7"
-                            )}>
-                              <div className="whitespace-pre-wrap wrap-anywhere">{message.content}</div>
-                            </div>
-                            {!loading && (
-                              <button
-                                type="button"
-                                onClick={() => handleEditQuestion(message.content)}
-                                className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] text-[var(--ink-muted)] opacity-0 transition-all hover:bg-[var(--surface-2)] hover:text-[var(--ink-soft)] group-hover/usermsg:opacity-100"
-                                aria-label="Edit and resend this question"
-                              >
-                                <Pencil size={11} />
-                                Edit
-                              </button>
-                            )}
-                          </div>
-                        ) : (
-                          <div className="space-y-3">
-                            <div className="flex items-center gap-3 text-xs text-[var(--ink-muted)]">
-                              <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border border-[var(--line)] bg-[var(--surface)] p-1.5 shadow-sm">
-                                <BrandLogo
-                                  variant="mark"
-                                  theme="dark"
-                                  className="h-5 w-5"
-                                  imageClassName="h-5"
-                                />
-                              </div>
-                              <span className="font-medium text-[var(--ink-soft)]">
-                                {assistantName}
-                              </span>
-                            </div>
-
-                            {message.confidence && (
-                              <div className="pl-0 sm:pl-10">
-                                <span className={cn(
-                                  "inline-flex rounded-full border px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.16em]",
-                                  getConfidenceClass(message.confidence),
-                                )}>
-                                  {formatConfidence(message.confidence)} Confidence
-                                </span>
-                              </div>
-                            )}
-
-                            {!!message.content && (
-                              <div className={cn(
-                                "markdown-container overflow-hidden pl-0 text-[var(--ink)]",
-                                isViewer ? "text-[15px] leading-8 sm:pl-10" : "text-[15px] leading-8 sm:pl-10"
-                              )}>
-                                <ReactMarkdown>{message.content}</ReactMarkdown>
-                              </div>
-                            )}
-
-                            {(message.statusMessage ||
-                              (loading && activeMessageId === message.id)) && (
-                              <div className="pl-0 sm:pl-10">
-                                <div className="inline-flex flex-wrap items-center gap-2 rounded-full border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-xs text-[var(--ink-muted)] shadow-sm">
-                                  {loading && activeMessageId === message.id ? (
-                                    <Loader2
-                                      size={13}
-                                      className="animate-spin text-[var(--accent-jade)]"
-                                    />
-                                  ) : (
-                                    <ShieldCheck
-                                      size={13}
-                                      className="text-[var(--accent-jade)]"
-                                    />
-                                  )}
-                                  <span>
-                                    {getVisibleStatus(
-                                      message.statusMessage || "",
-                                      isViewer,
-                                      loading && activeMessageId === message.id,
-                                    )}
-                                  </span>
-                                  {loading && activeMessageId === message.id && (
-                                    <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--line)] bg-[var(--surface)] px-2.5 py-1 text-[10px] uppercase tracking-[0.18em] text-[var(--ink-muted)]">
-                                      <ThinkingDots />
-                                      {elapsedSeconds.toFixed(1)}s
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                            )}
-
-                            <div className="pl-0 sm:pl-10">
-                              <div className="flex flex-wrap items-center gap-1.5">
-                                {!!message.content && (
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      handleCopyAnswer(message.content, message.id)
-                                    }
-                                    className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-xs text-[var(--ink-muted)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--ink-soft)]"
-                                  >
-                                    {copiedIndex === message.id ? (
-                                      <Check size={12} className="text-emerald-300" />
-                                    ) : (
-                                      <Copy size={12} />
-                                    )}
-                                    {copiedIndex === message.id ? "Copied" : "Copy"}
-                                  </button>
-                                )}
-                                {message.error && retryQuestion && (
-                                  <button
-                                    type="button"
-                                    onClick={(event) => handleSend(event, retryQuestion)}
-                                    disabled={loading}
-                                    className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-xs text-[var(--ink-muted)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--ink-soft)]"
-                                  >
-                                    <RefreshCw size={12} />
-                                    Retry
-                                  </button>
-                                )}
-                                {!message.error && !!message.content && !loading && (
-                                  <button
-                                    type="button"
-                                    onClick={() => handleRegenerate(message.id)}
-                                    className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-xs text-[var(--ink-muted)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--ink-soft)]"
-                                  >
-                                    <RefreshCw size={12} />
-                                    Regenerate
-                                  </button>
-                                )}
-                                {loading && activeMessageId === message.id && (
-                                  <button
-                                    type="button"
-                                    onClick={handleStopGenerating}
-                                    className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-xs text-[var(--ink-muted)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--ink-soft)]"
-                                  >
-                                    <Square size={11} className="fill-current" />
-                                    Stop
-                                  </button>
-                                )}
-                              </div>
-                            </div>
-
-                            {message.citations && message.citations.length > 0 && (
-                              <CitationList
-                                citations={message.citations}
-                                onOpenSource={openSource}
-                              />
-                            )}
-
-                            {message.followUps && message.followUps.length > 0 && (
-                              <FollowUpChips
-                                followUps={message.followUps}
-                                disabled={loading}
-                                onSelect={(followUp) => void handleSend(undefined, followUp)}
-                              />
-                            )}
-
-                            {message.chatMessageId && (
-                              <FeedbackRow
-                                loading={feedbackLoadingMessageId === message.id}
-                                submitted={message.feedbackSubmitted === true}
-                                rating={message.feedbackRating || null}
-                                expanded={expandedFeedbackMessageId === message.id}
-                                onHelpful={() =>
-                                  submitFeedback(message.id, "helpful")
-                                }
-                                onNotHelpful={() =>
-                                  submitFeedback(message.id, "not_helpful")
-                                }
-                                onToggleMore={() =>
-                                  setExpandedFeedbackMessageId((current) =>
-                                    current === message.id ? null : message.id,
-                                  )
-                                }
-                                onSelectMore={(rating) =>
-                                  submitFeedback(message.id, rating)
-                                }
-                              />
-                            )}
+                      <ChatMessage
+                        message={message}
+                        isViewer={isViewer}
+                        loading={loading}
+                        activeMessageId={activeMessageId}
+                        copiedIndex={copiedIndex}
+                        elapsedSeconds={elapsedSeconds}
+                        retryQuestion={retryQuestion}
+                        feedbackLoadingMessageId={feedbackLoadingMessageId}
+                        expandedFeedbackMessageId={expandedFeedbackMessageId}
+                        onCopyAnswer={handleCopyAnswer}
+                        onEditQuestion={handleEditQuestion}
+                        onRegenerate={handleRegenerate}
+                        onOpenSource={(citation) => void openSource(citation)}
+                        onRetry={handleSend}
+                        onStopGenerating={handleStopGenerating}
+                        onFollowUp={(followUp) =>
+                          void handleSend(undefined, followUp)
+                        }
+                        onFeedback={submitFeedback}
+                        onToggleFeedback={(messageId) =>
+                          setExpandedFeedbackMessageId((current) =>
+                            current === messageId ? null : messageId,
+                          )
+                        }
+                        onShowAllSources={() =>
+                          setExpandedSourceMessageId((current) =>
+                            current === message.id ? null : message.id,
+                          )
+                        }
+                      />
+                      {expandedSourceMessageId === message.id &&
+                        message.citations &&
+                        message.citations.length > 0 && (
+                          <div className="mt-1">
+                            <CitationList
+                              citations={message.citations}
+                              onOpenSource={(citation) =>
+                                void openSource(citation)
+                              }
+                            />
                           </div>
                         )}
-                      </div>
                     </div>
                   ))
                 )}
               </div>
 
-              <div className={cn(
-                  "sticky bottom-0 mt-auto bg-[linear-gradient(180deg,rgba(10,12,11,0)_0%,rgba(10,12,11,0.95)_24%,rgba(10,12,11,1)_100%)] pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-6",
-                isViewer ? "px-3 pt-4 sm:px-5 sm:pb-6 sm:pt-5" : "px-3 pt-4 sm:px-5 sm:pb-5 sm:pt-5"
-              )}>
-                <div className="mx-auto mb-2.5 flex max-w-3xl items-center gap-2">
-                  <Select value={answerMode} onValueChange={(value) => setAnswerMode(value as typeof answerMode)} disabled={loading}>
-                    <SelectTrigger
-                      aria-label="Answer style"
-                      className="h-9 w-full min-w-0 rounded-full border-[var(--line)] bg-[var(--surface)] text-xs font-medium shadow-sm focus-visible:border-teal-400 focus-visible:ring-[var(--accent-jade-100)] sm:w-40"
-                    >
-                      <Sliders size={13} className="shrink-0 text-[var(--ink-muted)]" />
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl border-[var(--line)]">
-                      {ANSWER_MODES.map((mode) => (
-                        <SelectItem key={mode.value} value={mode.value}>
-                          {mode.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {collections.length > 0 ? (
-                    <Select value={scopeCollectionId} onValueChange={setScopeCollectionId} disabled={loading}>
-                      <SelectTrigger
-                        aria-label="Document scope"
-                        className="h-9 w-full min-w-0 rounded-full border-[var(--line)] bg-[var(--surface)] text-xs font-medium shadow-sm focus-visible:border-teal-400 focus-visible:ring-[var(--accent-jade-100)] sm:w-48"
-                      >
-                        <FileText size={13} className="shrink-0 text-[var(--ink-muted)]" />
-                        <SelectValue placeholder="All documents" />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-xl border-[var(--line)]">
-                        <SelectItem value="all">All documents</SelectItem>
-                        {collections.map((collection) => (
-                          <SelectItem key={collection.id} value={collection.id}>
-                            {collection.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  ) : null}
-                </div>
-                <form onSubmit={handleSend} className="relative mx-auto max-w-3xl">
-                  <div
-                    className={cn(
-                      "flex items-end gap-1.5 rounded-3xl border bg-[var(--surface)] px-2 py-1.5 shadow-[var(--brand-shadow)] transition",
-                      inputFocused || isRecording
-                        ? "border-[var(--accent-jade)] ring-4 ring-[var(--accent-jade-100)]"
-                        : "border-[var(--line)]",
-                    )}
-                  >
-                    <button
-                      type="button"
-                      onClick={toggleRecording}
-                      disabled={loading}
-                      aria-label={isRecording ? "Stop recording speech" : "Start recording speech"}
-                      title={isRecording ? "Stop recording speech" : "Start recording speech"}
-                      className={cn(
-                        "flex h-11 w-11 shrink-0 items-center justify-center rounded-full outline-none transition active:scale-95",
-                        isRecording
-                          ? "bg-[var(--accent-jade)] text-[#04110e]"
-                          : "text-[var(--ink-muted)] hover:bg-[var(--surface-2)] hover:text-[var(--ink-soft)] focus-visible:ring-2 focus-visible:ring-[var(--accent-jade-100)]",
-                        !speechSupported && "cursor-not-allowed opacity-50 hover:bg-transparent",
-                      )}
-                    >
-                      {isRecording ? <MicOff size={18} className="animate-pulse" /> : <Mic size={18} />}
-                    </button>
-                    <Textarea
-                      ref={textareaRef}
-                      rows={1}
-                      className="max-h-40 w-full flex-1 resize-none border-0 bg-transparent py-2.5 text-base leading-6 text-[var(--ink)] shadow-none outline-none placeholder:text-[var(--ink-muted)] focus-visible:ring-0"
-                      placeholder={isRecording ? "Listening…" : "Ask a question…"}
-                      aria-label="Ask a question from approved documents"
-                      value={input}
-                      onChange={(event) => {
-                        setInput(event.target.value);
-                        adjustHeight();
-                      }}
-                      onFocus={() => setInputFocused(true)}
-                      onBlur={() => setInputFocused(false)}
-                      onKeyDown={(event) => {
-                        if (event.key === "Enter" && !event.shiftKey) {
-                          event.preventDefault();
-                          void handleSend();
-                        }
-                      }}
-                      disabled={loading}
-                      style={{ overflow: "hidden" }}
-                    />
-                    {loading ? (
-                      <button
-                        aria-label="Stop generating answer"
-                        type="button"
-                        onClick={handleStopGenerating}
-                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-[var(--ink-muted)] transition hover:bg-[var(--surface-2)] hover:text-[var(--ink)]"
-                      >
-                        <Square size={15} className="fill-current" />
-                      </button>
-                    ) : (
-                      <button
-                        aria-label="Send message"
-                        type="submit"
-                        disabled={!input.trim()}
-                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--accent-jade)] text-[#04110e] transition hover:bg-[var(--accent-jade-hover)] focus-visible:ring-4 focus-visible:ring-[var(--accent-jade-100)] active:scale-95 disabled:bg-[var(--surface-2)] disabled:text-[var(--ink-muted)]"
-                      >
-                        <Send size={18} />
-                      </button>
-                    )}
-                  </div>
-                </form>
-                <p className="mt-3 text-center text-xs text-[var(--ink-muted)]">
-                  {isViewer
-                    ? "Answers use approved documents when support is available."
-                    : "Answers use approved company documents and may include sources."}
-                </p>
-              </div>
+              <ChatComposer
+                input={input}
+                loading={loading}
+                isViewer={isViewer}
+                isRecording={isRecording}
+                speechSupported={speechSupported}
+                inputFocused={inputFocused}
+                answerMode={answerMode}
+                scopeCollectionId={scopeCollectionId}
+                collections={collections}
+                textareaRef={textareaRef}
+                onInputChange={setInput}
+                onInputFocus={setInputFocused}
+                onSubmit={handleSend}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" && !event.shiftKey) {
+                    event.preventDefault();
+                    void handleSend();
+                  }
+                }}
+                onStopGenerating={handleStopGenerating}
+                onToggleRecording={toggleRecording}
+                onAnswerModeChange={(value) =>
+                  setAnswerMode(value as typeof answerMode)
+                }
+                onScopeChange={setScopeCollectionId}
+                onAdjustHeight={adjustHeight}
+              />
             </div>
           </div>
         </div>
       </div>
 
       {!isViewer && (
-      <Sheet open={historyOpen} onOpenChange={setHistoryOpen}>
-        <SheetContent
-          side="left"
-          className="w-[min(100vw-1rem,22rem)] border-r border-[var(--line)] bg-[var(--surface)] p-0"
-        >
-          <SheetHeader className="border-b border-[var(--line)] px-5 py-4">
-            <SheetTitle>Recent Chats</SheetTitle>
-            <SheetDescription className="sr-only">
-              Browse, reopen, or delete your recent private chat sessions.
-            </SheetDescription>
-          </SheetHeader>
-          <div className="p-4">
-            <ChatHistoryPanel
-              sessions={filteredSessions}
-              loading={sessionsLoading}
-              search={sessionSearch}
-              onSearchChange={setSessionSearch}
-              activeSessionId={activeSessionId}
-              onNewChat={createNewChat}
-              onOpenSession={(sessionId) => void loadSession(sessionId, true)}
-              onDeleteSession={(sessionId) => setDeleteSessionId(sessionId)}
-              disabled={loading}
-            />
-          </div>
-        </SheetContent>
-      </Sheet>
+        <Sheet open={historyOpen} onOpenChange={setHistoryOpen}>
+          <SheetContent
+            side="left"
+            className="w-[min(100vw-1rem,22rem)] border-r border-[var(--line)] bg-[var(--surface)] p-0"
+          >
+            <SheetHeader className="border-b border-[var(--line)] px-5 py-4">
+              <SheetTitle>Recent Chats</SheetTitle>
+              <SheetDescription className="sr-only">
+                Browse, reopen, or delete your recent private chat sessions.
+              </SheetDescription>
+            </SheetHeader>
+            <div className="p-4">
+              <ChatHistoryPanel
+                sessions={filteredSessions}
+                loading={sessionsLoading}
+                search={sessionSearch}
+                onSearchChange={setSessionSearch}
+                activeSessionId={activeSessionId}
+                onNewChat={createNewChat}
+                onOpenSession={(sessionId) => void loadSession(sessionId, true)}
+                onDeleteSession={(sessionId) => setDeleteSessionId(sessionId)}
+                disabled={loading}
+              />
+            </div>
+          </SheetContent>
+        </Sheet>
       )}
 
       <ConfirmDialog
@@ -1463,7 +1284,9 @@ export default function ChatPage() {
         error={sourceError}
         managerView={!!profile && isWorkspaceAdminRole(profile.role)}
         sessionTitle={activeSessionTitle}
-        onViewDocument={(documentId, filename) => setPreviewDoc({ id: documentId, filename })}
+        onViewDocument={(documentId, filename) =>
+          setPreviewDoc({ id: documentId, filename })
+        }
       />
 
       <FilePreviewDrawer
@@ -1530,7 +1353,10 @@ function ChatHistoryPanel({
         </div>
         {loading ? (
           <div className="flex items-center gap-3 rounded-2xl px-3 py-4 text-sm text-[var(--ink-muted)]">
-            <Loader2 size={16} className="animate-spin text-[var(--accent-jade)]" />
+            <Loader2
+              size={16}
+              className="animate-spin text-[var(--accent-jade)]"
+            />
             Loading chats...
           </div>
         ) : sessions.length === 0 ? (
@@ -1563,7 +1389,9 @@ function ChatHistoryPanel({
                     <p
                       className={cn(
                         "truncate text-sm font-semibold",
-                        active ? "text-[var(--accent-jade)]" : "text-[var(--ink)]",
+                        active
+                          ? "text-[var(--accent-jade)]"
+                          : "text-[var(--ink)]",
                       )}
                       title={session.title}
                     >
@@ -1623,37 +1451,6 @@ function getVisibleStatus(
   return statusMessage || "Thinking...";
 }
 
-function FollowUpChips({
-  followUps,
-  disabled,
-  onSelect,
-}: {
-  followUps: string[];
-  disabled: boolean;
-  onSelect: (followUp: string) => void;
-}) {
-  return (
-    <div className="pl-0 sm:pl-10">
-      <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--ink-muted)]">
-        Suggested follow-ups
-      </p>
-      <div className="flex flex-wrap gap-2">
-        {followUps.slice(0, 5).map((followUp) => (
-          <button
-            key={followUp}
-            type="button"
-            disabled={disabled}
-            onClick={() => onSelect(followUp)}
-            className="rounded-full border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-left text-xs font-medium text-[var(--ink-soft)] shadow-sm transition hover:border-[var(--accent-jade-100)] hover:bg-[var(--accent-jade-50)] hover:text-[var(--ink)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--accent-jade-100)] disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {followUp}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 function CitationList({
   citations,
   onOpenSource,
@@ -1662,17 +1459,37 @@ function CitationList({
   onOpenSource: (citation: Citation) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
-  const uniqueCitations = citations
-    .filter((citation, index, allCitations) => {
-      return (
-        allCitations.findIndex(
-          (item) =>
-            item.filename === citation.filename &&
-            item.chunk_index === citation.chunk_index,
-        ) === index
-      );
-    })
-    .slice(0, 5);
+
+  // Group citations by filename and count references
+  const groupedCitations = citations.reduce(
+    (acc, citation) => {
+      const existing = acc.find((item) => item.filename === citation.filename);
+      if (existing) {
+        existing.count += 1;
+        existing.citations.push(citation);
+      } else {
+        acc.push({
+          filename: citation.filename,
+          count: 1,
+          citations: [citation],
+          category: citation.document_category,
+          relevance_score: citation.relevance_score,
+        });
+      }
+      return acc;
+    },
+    [] as Array<{
+      filename: string;
+      count: number;
+      citations: Citation[];
+      category?: string;
+      relevance_score?: number;
+    }>,
+  );
+
+  // Show top 5 unique documents
+  const visibleGroups = groupedCitations.slice(0, 5);
+  const hasMore = groupedCitations.length > 5;
 
   return (
     <div className="pl-0 sm:pl-10">
@@ -1684,7 +1501,9 @@ function CitationList({
       >
         <ShieldCheck size={12} className="text-[var(--accent-jade)]" />
         <span>Sources</span>
-        <span className="text-[var(--ink-muted)]">· {uniqueCitations.length}</span>
+        <span className="text-[var(--ink-muted)]">
+          · {visibleGroups.length}
+        </span>
         {expanded ? (
           <ChevronUp size={14} className="text-[var(--ink-muted)]" />
         ) : (
@@ -1694,12 +1513,12 @@ function CitationList({
 
       {expanded && (
         <div className="mt-3 grid gap-2.5">
-          {uniqueCitations.map((citation) => (
+          {visibleGroups.map((group) => (
             <button
               type="button"
-              key={`${citation.filename}-${citation.chunk_index}`}
-              onClick={() => onOpenSource(citation)}
-              aria-label={`Open source ${citation.filename} section ${citation.chunk_index}`}
+              key={group.filename}
+              onClick={() => void onOpenSource(group.citations[0])}
+              aria-label={`Open source ${group.filename} with ${group.count} references`}
               className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] px-4 py-3 text-left shadow-sm transition-colors hover:border-[var(--accent-jade-100)] hover:bg-[var(--accent-jade-50)]"
             >
               <div className="flex items-start gap-3">
@@ -1709,34 +1528,28 @@ function CitationList({
                 <div className="min-w-0 flex-1">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-medium text-[var(--ink)]" title={citation.filename}>
-                        {citation.filename}
+                      <p
+                        className="truncate text-sm font-medium text-[var(--ink)]"
+                        title={group.filename}
+                      >
+                        {group.filename}
                       </p>
                       <p className="mt-1 text-[11px] text-[var(--ink-muted)]">
-                        Section {citation.chunk_index}
-                        {citation.document_category ? ` · ${citation.document_category}` : ""}
+                        {group.count} reference{group.count !== 1 ? "s" : ""}
+                        {group.category ? ` · ${group.category}` : ""}
                       </p>
                     </div>
                     <div className="shrink-0 text-right">
-                      <span className="text-[11px] text-[var(--accent-jade)]">Open</span>
-                      {citation.relevance_score ? (
+                      <span className="text-[11px] text-[var(--accent-jade)]">
+                        Open
+                      </span>
+                      {group.relevance_score ? (
                         <p className="mt-1 text-[10px] text-[var(--ink-muted)]">
-                          {(citation.relevance_score * 100).toFixed(0)}% relevance
+                          {(group.relevance_score * 100).toFixed(0)}% relevance
                         </p>
                       ) : null}
                     </div>
                   </div>
-                  {citation.confidence ? (
-                    <span className={cn(
-                      "mt-2 inline-flex rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.12em]",
-                      getConfidenceClass(citation.confidence),
-                    )}>
-                      {formatConfidence(citation.confidence)}
-                    </span>
-                  ) : null}
-                  <p className="mt-2 text-xs leading-6 text-[var(--ink-muted)]">
-                    {truncate(citation.preview, 120)}
-                  </p>
                 </div>
               </div>
             </button>
@@ -1744,9 +1557,9 @@ function CitationList({
         </div>
       )}
 
-      {citations.length > uniqueCitations.length && (
+      {hasMore && expanded && (
         <p className="mt-2 text-[11px] text-[var(--ink-soft)]">
-          Showing top 5 unique sources
+          Showing {visibleGroups.length} of {groupedCitations.length} sources
         </p>
       )}
     </div>
@@ -1767,85 +1580,6 @@ function getConfidenceClass(confidence: "high" | "medium" | "low") {
   }
 
   return "border-red-500/30 bg-red-500/10 text-red-300";
-}
-
-function FeedbackRow({
-  loading,
-  submitted,
-  rating,
-  expanded,
-  onHelpful,
-  onNotHelpful,
-  onToggleMore,
-  onSelectMore,
-}: {
-  loading: boolean;
-  submitted: boolean;
-  rating: FeedbackRating | null;
-  expanded: boolean;
-  onHelpful: () => void;
-  onNotHelpful: () => void;
-  onToggleMore: () => void;
-  onSelectMore: (rating: FeedbackRating) => void;
-}) {
-  return (
-    <div className="pl-0 sm:pl-10">
-      {submitted ? (
-        <p className="text-xs text-[var(--ink-muted)]">
-          Thanks for the feedback{rating ? ` · ${rating.replaceAll("_", " ")}` : ""}.
-        </p>
-      ) : (
-        <>
-          <div className="flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              disabled={loading}
-              onClick={onHelpful}
-              className="inline-flex items-center gap-1.5 rounded-full border border-[var(--line)] px-3 py-1.5 text-xs text-[var(--ink-muted)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--ink)]"
-            >
-              <ThumbsUp size={12} />
-              Helpful
-            </button>
-            <button
-              type="button"
-              disabled={loading}
-              onClick={onNotHelpful}
-              className="inline-flex items-center gap-1.5 rounded-full border border-[var(--line)] px-3 py-1.5 text-xs text-[var(--ink-muted)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--ink)]"
-            >
-              <ThumbsDown size={12} />
-              Not helpful
-            </button>
-            <button
-              type="button"
-              disabled={loading}
-              onClick={onToggleMore}
-              aria-expanded={expanded}
-              aria-label="Show more feedback options"
-              className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs text-[var(--ink-muted)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--ink-soft)]"
-            >
-              More options
-            </button>
-            {loading && <Loader2 size={13} className="animate-spin text-[var(--accent-jade)]" />}
-          </div>
-
-          {expanded && (
-            <div className="mt-2 flex flex-wrap gap-2">
-              {EXTRA_FEEDBACK_OPTIONS.map((option) => (
-                <button
-                  key={option}
-                  type="button"
-                  onClick={() => onSelectMore(option)}
-                  className="rounded-full border border-[var(--line)] px-3 py-1.5 text-xs text-[var(--ink-muted)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--ink)]"
-                >
-                  {option.replaceAll("_", " ")}
-                </button>
-              ))}
-            </div>
-          )}
-        </>
-      )}
-    </div>
-  );
 }
 
 function SourceDrawer({
@@ -1878,11 +1612,14 @@ function SourceDrawer({
   };
 
   return (
-    <Sheet open={open} onOpenChange={(nextOpen) => {
-      if (!nextOpen) {
-        onClose();
-      }
-    }}>
+    <Sheet
+      open={open}
+      onOpenChange={(nextOpen) => {
+        if (!nextOpen) {
+          onClose();
+        }
+      }}
+    >
       <SheetContent
         side="right"
         showCloseButton={false}
@@ -1899,7 +1636,8 @@ function SourceDrawer({
                   {citation?.filename || "Source details"}
                 </SheetTitle>
                 <SheetDescription className="sr-only">
-                  View source details and excerpt for the selected citation from {sessionTitle}.
+                  View source details and excerpt for the selected citation from{" "}
+                  {sessionTitle}.
                 </SheetDescription>
               </div>
               <button
@@ -1917,7 +1655,12 @@ function SourceDrawer({
             {citation?.document_id ? (
               <button
                 type="button"
-                onClick={() => onViewDocument(citation.document_id as string, citation.filename || "Document")}
+                onClick={() =>
+                  onViewDocument(
+                    citation.document_id as string,
+                    citation.filename || "Document",
+                  )
+                }
                 className="app-button-primary mb-5 flex w-full justify-center"
               >
                 <FileText size={15} />
@@ -1927,7 +1670,10 @@ function SourceDrawer({
 
             {loading && (
               <div className="flex items-center gap-3 rounded-2xl border border-[var(--line)] bg-[var(--surface-2)] px-4 py-4 text-sm text-[var(--ink-soft)]">
-                <Loader2 size={16} className="animate-spin text-[var(--accent-jade)]" />
+                <Loader2
+                  size={16}
+                  className="animate-spin text-[var(--accent-jade)]"
+                />
                 Loading source details...
               </div>
             )}
@@ -1997,8 +1743,12 @@ function SourceDrawer({
                     Source metadata
                   </p>
                   <div className="mt-3 space-y-2 text-sm text-[var(--ink-soft)]">
-                    <p className="wrap-anywhere">Document ID: {citation?.document_id || "Unknown"}</p>
-                    <p className="wrap-anywhere">Uploaded by: {citation?.uploaded_by || "Unknown"}</p>
+                    <p className="wrap-anywhere">
+                      Document ID: {citation?.document_id || "Unknown"}
+                    </p>
+                    <p className="wrap-anywhere">
+                      Uploaded by: {citation?.uploaded_by || "Unknown"}
+                    </p>
                     <p>Section: {citation?.chunk_index || 0}</p>
                   </div>
                 </div>
@@ -2008,28 +1758,5 @@ function SourceDrawer({
         </div>
       </SheetContent>
     </Sheet>
-  );
-}
-
-function ThinkingDots() {
-  return (
-    <span className="inline-flex items-center gap-0.5">
-      {[0, 1, 2].map((i) => (
-        <span
-          key={i}
-          className="inline-block h-1 w-1 rounded-full bg-teal-500"
-          style={{
-            animation: "thinking-dot 1.2s ease-in-out infinite",
-            animationDelay: `${i * 0.15}s`,
-          }}
-        />
-      ))}
-      <style>{`
-        @keyframes thinking-dot {
-          0%, 100% { opacity: 0.3; transform: scale(0.85); }
-          50% { opacity: 1; transform: scale(1.15); }
-        }
-      `}</style>
-    </span>
   );
 }

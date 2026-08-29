@@ -15,5 +15,5 @@ Branded, mobile-friendly HTML for the auth emails Supabase sends through your Re
 ## Notes
 - These use Supabase Go-template variables: `{{ .ConfirmationURL }}`, `{{ .SiteURL }}`, `{{ .Email }}`. Leave them exactly as written.
 - All CSS is inlined and the layout is table-based for broad email-client support (incl. Outlook).
-- The logo loads from `https://rekalliq.springvoxsl.com/brand/rekall-mark.png`; if a client blocks images, the "Rekall-IQ" text wordmark still shows.
+- The logo loads from `https://rekalliq.springvoxsl.com/brand/rekall-mark.jpeg`; if a client blocks images, the "Rekall-IQ" text wordmark still shows.
 - Product notifications (invites, trials, welcome, alerts) are separate — those are sent from the app via the Resend **API** (`src/lib/email/`), not these dashboard templates.

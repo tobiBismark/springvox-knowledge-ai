@@ -34,7 +34,23 @@ const EMPTY_SETTINGS: WorkspaceSettings = {
 };
 
 const fieldClassName =
-  "h-12 rounded-xl border-[var(--line)] bg-[var(--surface)] text-sm shadow-sm focus-visible:border-teal-400 focus-visible:ring-[var(--accent-jade-100)]";
+  "h-12 rounded-xl border-[var(--line)] bg-[var(--surface)] text-sm shadow-sm focus-visible:border-[var(--accent-jade)] focus-visible:ring-[var(--accent-jade-100)]";
+
+function getContrastText(hex: string): string {
+  const value = (hex || "").replace("#", "");
+  const full =
+    value.length === 3
+      ? value
+          .split("")
+          .map((character) => character + character)
+          .join("")
+      : value;
+  const r = parseInt(full.slice(0, 2), 16) || 0;
+  const g = parseInt(full.slice(2, 4), 16) || 0;
+  const b = parseInt(full.slice(4, 6), 16) || 0;
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return luminance > 0.5 ? "#04110e" : "#ffffff";
+}
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -201,7 +217,7 @@ export default function SettingsPage() {
                     <div
                       className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-md border border-[var(--line)]"
                       style={{
-                        backgroundColor: settings.primary_color || "#000",
+                        backgroundColor: settings.primary_color || "#14B8A6",
                       }}
                     />
                   </div>
@@ -242,7 +258,7 @@ export default function SettingsPage() {
                 </Field>
               </div>
 
-              <div className="mt-6 pt-6 border-t border-slate-50">
+              <div className="mt-6 pt-6 border-t border-[var(--line)]">
                 <Field label="Default System Welcome">
                   <Textarea
                     rows={4}
@@ -272,9 +288,10 @@ export default function SettingsPage() {
                       />
                     ) : (
                       <div
-                        className="flex h-12 w-12 items-center justify-center rounded-2xl font-bold text-white shadow-sm"
+                        className="flex h-12 w-12 items-center justify-center rounded-2xl font-bold shadow-sm"
                         style={{
-                          backgroundColor: settings.primary_color || "#0f172a",
+                          backgroundColor: settings.primary_color || "#14B8A6",
+                          color: getContrastText(settings.primary_color || "#14B8A6"),
                         }}
                       >
                         {(settings.name || "S").slice(0, 1).toUpperCase()}

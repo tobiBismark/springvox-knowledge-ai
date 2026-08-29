@@ -1,15 +1,18 @@
 "use client";
 
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { Building2, FileText, MessageSquare, Users } from 'lucide-react';
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { Building2, FileText, MessageSquare, Users } from "lucide-react";
 
-import { fetchPlatformJson } from '@/src/lib/platform-client';
-import { PlanBadge, StatusBadge } from '@/src/components/platform/PlatformBadges';
-import { PlatformPageHeader } from '@/src/components/platform/PlatformPageHeader';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AppCard, AppCardContent } from '@/src/components/ui/app-card';
-import { StatCard } from '@/src/components/ui/stat-card';
+import { fetchPlatformJson } from "@/src/lib/platform-client";
+import {
+  PlanBadge,
+  StatusBadge,
+} from "@/src/components/platform/PlatformBadges";
+import { PlatformPageHeader } from "@/src/components/platform/PlatformPageHeader";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AppCard, AppCardContent } from "@/src/components/ui/app-card";
+import { StatCard } from "@/src/components/ui/stat-card";
 
 type SummaryResponse = {
   totals: {
@@ -76,10 +79,16 @@ export default function PlatformOverviewPage() {
   useEffect(() => {
     async function load() {
       try {
-        const result = await fetchPlatformJson<SummaryResponse>('/api/platform/summary');
+        const result = await fetchPlatformJson<SummaryResponse>(
+          "/api/platform/summary",
+        );
         setData(result);
       } catch (loadError) {
-        setError(loadError instanceof Error ? loadError.message : 'Failed to load platform summary');
+        setError(
+          loadError instanceof Error
+            ? loadError.message
+            : "Failed to load platform summary",
+        );
       } finally {
         setLoading(false);
       }
@@ -89,10 +98,18 @@ export default function PlatformOverviewPage() {
   }, []);
 
   const cards = [
-    { label: 'Companies', value: data.totals.totalWorkspaces, icon: Building2 },
-    { label: 'Platform users', value: data.totals.totalUsers, icon: Users },
-    { label: 'Uploaded documents', value: data.totals.totalDocuments, icon: FileText },
-    { label: 'Questions asked', value: data.totals.totalQuestions, icon: MessageSquare },
+    { label: "Companies", value: data.totals.totalWorkspaces, icon: Building2 },
+    { label: "Platform users", value: data.totals.totalUsers, icon: Users },
+    {
+      label: "Uploaded documents",
+      value: data.totals.totalDocuments,
+      icon: FileText,
+    },
+    {
+      label: "Questions asked",
+      value: data.totals.totalQuestions,
+      icon: MessageSquare,
+    },
   ];
 
   return (
@@ -108,47 +125,66 @@ export default function PlatformOverviewPage() {
         </Alert>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
         {cards.map((card) => (
           <StatCard
             key={card.label}
             label={card.label}
             value={card.value}
             icon={card.icon}
-            meta={loading ? 'Updating' : undefined}
+            meta={loading ? "Updating" : undefined}
           />
         ))}
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
-        <AppCard className="p-6">
+      <div className="grid gap-5 xl:grid-cols-[1.05fr_0.95fr]">
+        <AppCard className="p-4 sm:p-5">
           <div className="mb-4 flex items-center justify-between gap-4">
             <div>
-              <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-[var(--ink-muted)]">Recent companies</p>
-              <h2 className="mt-1 text-lg font-bold text-[var(--ink)]">Newest workspaces</h2>
+              <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-[var(--ink-muted)]">
+                Recent companies
+              </p>
+              <h2 className="mt-1 text-lg font-bold text-[var(--ink)]">
+                Newest workspaces
+              </h2>
             </div>
-            <Link href="/platform/companies" className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--accent-jade)] hover:text-[var(--accent-jade)]">
+            <Link
+              href="/platform/companies"
+              className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--accent-jade)] hover:text-[var(--accent-jade)]"
+            >
               View all
             </Link>
           </div>
           <AppCardContent className="space-y-3 px-0 pb-0">
             {data.recentCompanies.length === 0 ? (
-              <p className="text-sm text-[var(--ink-muted)]">No companies created yet.</p>
+              <p className="text-sm text-[var(--ink-muted)]">
+                No companies created yet.
+              </p>
             ) : (
               data.recentCompanies.map((company) => (
-                <div key={company.id} className="rounded-2xl border border-[var(--line)] bg-[var(--surface-2)] p-4">
+                <div
+                  key={company.id}
+                  className="border-b border-[var(--line)] py-3 first:pt-0 last:border-b-0 last:pb-0"
+                >
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <Link href={`/platform/companies/${company.id}`} className="text-sm font-semibold text-[var(--ink)] hover:text-[var(--accent-jade)]">
+                      <Link
+                        href={`/platform/companies/${company.id}`}
+                        className="text-sm font-semibold text-[var(--ink)] hover:text-[var(--accent-jade)]"
+                      >
                         {company.name}
                       </Link>
-                      <p className="mt-1 text-xs text-[var(--ink-muted)]">{company.slug}</p>
+                      <p className="mt-1 text-xs text-[var(--ink-muted)]">
+                        {company.slug}
+                      </p>
                     </div>
                     <StatusBadge status={company.status} />
                   </div>
                   <div className="mt-3 flex items-center justify-between gap-3">
                     <PlanBadge plan={company.plan} />
-                    <span className="text-xs text-[var(--ink-muted)]">{formatDate(company.created_at)}</span>
+                    <span className="text-xs text-[var(--ink-muted)]">
+                      {formatDate(company.created_at)}
+                    </span>
                   </div>
                 </div>
               ))
@@ -156,31 +192,66 @@ export default function PlatformOverviewPage() {
           </AppCardContent>
         </AppCard>
 
-        <div className="space-y-6">
-          <AppCard className="p-6">
-            <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-[var(--ink-muted)]">Platform activity</p>
+        <div className="space-y-5">
+          <AppCard className="p-4 sm:p-5">
+            <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-[var(--ink-muted)]">
+              Platform activity
+            </p>
             <div className="mt-4 space-y-3">
-              <MetricRow label="New companies in last 7 days" value={data.totals.newCompaniesLast7Days} />
-              <MetricRow label="Questions in last 7 days" value={data.totals.questionsLast7Days} />
-              <MetricRow label="Open unanswered questions" value={data.totals.totalUnansweredQuestions} />
-              <MetricRow label="Feedback submitted" value={data.totals.totalFeedback} />
+              <MetricRow
+                label="New companies in last 7 days"
+                value={data.totals.newCompaniesLast7Days}
+              />
+              <MetricRow
+                label="Questions in last 7 days"
+                value={data.totals.questionsLast7Days}
+              />
+              <MetricRow
+                label="Open unanswered questions"
+                value={data.totals.totalUnansweredQuestions}
+              />
+              <MetricRow
+                label="Feedback submitted"
+                value={data.totals.totalFeedback}
+              />
             </div>
           </AppCard>
 
-          <AppCard className="p-6">
-            <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-[var(--ink-muted)]">Status distribution</p>
+          <AppCard className="p-4 sm:p-5">
+            <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-[var(--ink-muted)]">
+              Status distribution
+            </p>
             <div className="mt-4 space-y-3">
               {[
-                { label: 'Active', count: data.totals.activeWorkspaces, status: 'active' },
-                { label: 'Trial', count: data.totals.trialWorkspaces, status: 'trial' },
-                { label: 'Suspended', count: data.totals.suspendedWorkspaces, status: 'suspended' },
+                {
+                  label: "Active",
+                  count: data.totals.activeWorkspaces,
+                  status: "active",
+                },
+                {
+                  label: "Trial",
+                  count: data.totals.trialWorkspaces,
+                  status: "trial",
+                },
+                {
+                  label: "Suspended",
+                  count: data.totals.suspendedWorkspaces,
+                  status: "suspended",
+                },
               ].map((item) => (
-                <div key={item.label} className="flex items-center justify-between rounded-2xl border border-[var(--line)] bg-[var(--surface-2)] px-4 py-3">
+                <div
+                  key={item.label}
+                  className="flex items-center justify-between border-b border-[var(--line)] py-2.5 last:border-b-0"
+                >
                   <div className="flex items-center gap-3">
                     <StatusBadge status={item.status} />
-                    <span className="text-sm font-medium text-[var(--ink-soft)]">{item.label}</span>
+                    <span className="text-sm font-medium text-[var(--ink-soft)]">
+                      {item.label}
+                    </span>
                   </div>
-                  <span className="text-lg font-bold text-[var(--ink)]">{item.count}</span>
+                  <span className="text-lg font-bold text-[var(--ink)]">
+                    {item.count}
+                  </span>
                 </div>
               ))}
             </div>
@@ -193,13 +264,19 @@ export default function PlatformOverviewPage() {
 
 function MetricRow({ label, value }: { label: string; value: number }) {
   return (
-    <div className="flex items-center justify-between gap-4 rounded-2xl border border-[var(--line)] bg-[var(--surface-2)] px-4 py-3">
-      <span className="text-sm font-medium text-[var(--ink-soft)]">{label}</span>
+    <div className="flex items-center justify-between gap-4 border-b border-[var(--line)] py-2.5 last:border-b-0">
+      <span className="text-sm font-medium text-[var(--ink-soft)]">
+        {label}
+      </span>
       <span className="text-lg font-bold text-[var(--ink)]">{value}</span>
     </div>
   );
 }
 
 function formatDate(value: string) {
-  return new Date(value).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+  return new Date(value).toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 }

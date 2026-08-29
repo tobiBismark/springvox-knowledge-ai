@@ -182,7 +182,7 @@ export default function EvaluationsPage() {
                 value={setName}
                 onChange={(e) => setSetName(e.target.value)}
                 placeholder="e.g. Cisco manual quality checks"
-                className="h-11 rounded-xl border-[var(--line)] bg-[var(--surface)] text-sm shadow-sm focus-visible:border-teal-400 focus-visible:ring-[var(--accent-jade-100)]"
+                className="h-11 rounded-xl border-[var(--line)] bg-[var(--surface)] text-sm shadow-sm focus-visible:border-[var(--accent-jade)] focus-visible:ring-[var(--accent-jade-100)]"
                 required
               />
             </div>
@@ -212,7 +212,7 @@ export default function EvaluationsPage() {
                 value={questionText}
                 onChange={(e) => setQuestionText(e.target.value)}
                 placeholder="How do I transfer a call?"
-                className="h-11 rounded-xl border-[var(--line)] bg-[var(--surface)] text-sm shadow-sm focus-visible:border-teal-400 focus-visible:ring-[var(--accent-jade-100)]"
+                className="h-11 rounded-xl border-[var(--line)] bg-[var(--surface)] text-sm shadow-sm focus-visible:border-[var(--accent-jade)] focus-visible:ring-[var(--accent-jade-100)]"
                 required
               />
             </div>
@@ -225,7 +225,7 @@ export default function EvaluationsPage() {
                 value={documentNames}
                 onChange={(e) => setDocumentNames(e.target.value)}
                 placeholder="doc1.pdf, doc2.pdf"
-                className="h-11 rounded-xl border-[var(--line)] bg-[var(--surface)] text-sm shadow-sm focus-visible:border-teal-400 focus-visible:ring-[var(--accent-jade-100)]"
+                className="h-11 rounded-xl border-[var(--line)] bg-[var(--surface)] text-sm shadow-sm focus-visible:border-[var(--accent-jade)] focus-visible:ring-[var(--accent-jade-100)]"
               />
             </div>
             <div className="space-y-1.5">
@@ -237,7 +237,7 @@ export default function EvaluationsPage() {
                 value={keywords}
                 onChange={(e) => setKeywords(e.target.value)}
                 placeholder="transfer, hold, extension"
-                className="h-11 rounded-xl border-[var(--line)] bg-[var(--surface)] text-sm shadow-sm focus-visible:border-teal-400 focus-visible:ring-[var(--accent-jade-100)]"
+                className="h-11 rounded-xl border-[var(--line)] bg-[var(--surface)] text-sm shadow-sm focus-visible:border-[var(--accent-jade)] focus-visible:ring-[var(--accent-jade-100)]"
               />
             </div>
             <div className="flex flex-col gap-1.5">
@@ -246,7 +246,7 @@ export default function EvaluationsPage() {
               </label>
               <div className="flex gap-2">
                 <Select value={selectedSetId ?? ""} onValueChange={(v) => setSelectedSetId(v || null)}>
-                  <SelectTrigger className="h-11 min-w-[10rem] rounded-xl border-[var(--line)] bg-[var(--surface)] text-sm shadow-sm focus-visible:border-teal-400 focus-visible:ring-[var(--accent-jade-100)]">
+                  <SelectTrigger className="h-11 min-w-[10rem] rounded-xl border-[var(--line)] bg-[var(--surface)] text-sm shadow-sm focus-visible:border-[var(--accent-jade)] focus-visible:ring-[var(--accent-jade-100)]">
                     <SelectValue placeholder="Choose set" />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl border-[var(--line)]">
@@ -307,41 +307,56 @@ export default function EvaluationsPage() {
                     </div>
 
                     {latestRun ? (
-                      <div className="flex flex-wrap items-center gap-3">
-                        <span className={cn(
-                          "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em]",
-                          latestRun.status === "completed"
-                            ? passRate !== null && passRate >= 80
-                              ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
-                              : "border-amber-500/30 bg-amber-500/10 text-amber-300"
-                            : latestRun.status === "failed"
-                              ? "border-red-500/30 bg-red-500/10 text-red-300"
-                              : "border-[var(--line)] bg-[var(--surface-2)] text-[var(--ink-soft)]",
-                        )}>
-                          {latestRun.status === "completed" && <CheckCircle2 size={10} />}
-                          {latestRun.status}
-                        </span>
-                        {passRate !== null && (
-                          <span className="text-xs font-semibold text-[var(--ink-soft)]">
-                            {latestRun.passed_questions}/{latestRun.total_questions} passed
-                            {" · "}
-                            <span className={passRate >= 80 ? "text-emerald-300" : "text-amber-300"}>
-                              {passRate}%
+                      <>
+                        <div className="flex flex-wrap items-center gap-3">
+                          <span className={cn(
+                            "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em]",
+                            latestRun.status === "completed"
+                              ? passRate !== null && passRate >= 80
+                                ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
+                                : "border-amber-500/30 bg-amber-500/10 text-amber-300"
+                              : latestRun.status === "failed"
+                                ? "border-red-500/30 bg-red-500/10 text-red-300"
+                                : "border-[var(--line)] bg-[var(--surface-2)] text-[var(--ink-soft)]",
+                          )}>
+                            {latestRun.status === "completed" && <CheckCircle2 size={10} />}
+                            {latestRun.status}
+                          </span>
+                          {passRate !== null && (
+                            <span className="text-xs font-semibold text-[var(--ink-soft)]">
+                              {latestRun.passed_questions}/{latestRun.total_questions} passed
+                              {" · "}
+                              <span className={passRate >= 80 ? "text-emerald-300" : "text-amber-300"}>
+                                {passRate}%
+                              </span>
                             </span>
-                          </span>
-                        )}
-                        {latestRun.average_latency_ms && (
+                          )}
+                          {latestRun.average_latency_ms && (
+                            <span className="text-xs text-[var(--ink-muted)]">
+                              {latestRun.average_latency_ms}ms avg
+                            </span>
+                          )}
                           <span className="text-xs text-[var(--ink-muted)]">
-                            {latestRun.average_latency_ms}ms avg
+                            {new Date(latestRun.created_at).toLocaleDateString(undefined, {
+                              month: "short",
+                              day: "numeric",
+                            })}
                           </span>
+                        </div>
+                        {passRate !== null && (
+                          <div className="mt-3 h-1.5 w-full max-w-xs overflow-hidden rounded-full bg-[var(--surface-2)]">
+                            <div
+                              className={cn(
+                                "h-full rounded-full transition-all",
+                                passRate >= 80
+                                  ? "bg-emerald-400"
+                                  : "bg-amber-400",
+                              )}
+                              style={{ width: `${Math.max(4, passRate)}%` }}
+                            />
+                          </div>
                         )}
-                        <span className="text-xs text-[var(--ink-muted)]">
-                          {new Date(latestRun.created_at).toLocaleDateString(undefined, {
-                            month: "short",
-                            day: "numeric",
-                          })}
-                        </span>
-                      </div>
+                      </>
                     ) : (
                       <p className="text-xs text-[var(--ink-muted)]">No runs yet</p>
                     )}

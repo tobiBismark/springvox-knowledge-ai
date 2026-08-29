@@ -22,11 +22,11 @@ export const metadata: Metadata = {
     "Turn approved company documents into a secure AI assistant. Teams get instant, sourced answers from policies, handbooks, and procedures. No credit card required.",
   icons: {
     icon: [
-      { url: "/brand/rekall-icon.svg", type: "image/svg+xml" },
-      { url: "/brand/rekall-mark.png", type: "image/png", sizes: "512x512" },
+      { url: "/brand/rekall-logo.png", type: "image/png" },
+      { url: "/brand/rekall-mark.jpeg", type: "image/jpeg", sizes: "512x512" },
     ],
-    shortcut: ["/brand/rekall-icon.svg"],
-    apple: [{ url: "/brand/rekall-mark.png", type: "image/png" }],
+    shortcut: ["/brand/rekall-logo.png"],
+    apple: [{ url: "/brand/rekall-mark.jpeg", type: "image/jpeg" }],
   },
   openGraph: {
     title:

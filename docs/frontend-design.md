@@ -1,10 +1,10 @@
 # Frontend Design Documentation
 
-> **Theme note (2026-06-12):** the product is a unified **dark** theme driven by CSS tokens in
+> **Theme note (2026-08-06):** the product is a unified **dark** theme driven by CSS tokens in
 > `app/globals.css` (`--canvas #0a0c0b`, `--surface #141816`, `--ink`, `--line #242a26`, accent
 > `--accent-jade #14b8a6`); `<html class="dark">`. Both sidebars are dark; each page shows one H1
-> (body) with a breadcrumb top bar. The authoritative visual contract is `DESIGN.md` — any
-> light-theme description below is historical.
+> (body) with a breadcrumb top bar. In-app logo is inline SVG `RekallMark` via `BrandLogo`. The
+> authoritative visual contract is `DESIGN.md` — body sections match the dark banner (Phase 0).
 
 ## Overview
 
@@ -162,25 +162,24 @@ This gives administrators operational continuity without blurring tenant and pla
 
 ### Visual Language
 
-The current brand direction is enterprise, clean, and calm.
+The current brand direction is enterprise, clean, and calm. The product uses a unified **dark** theme — see `DESIGN.md` for the authoritative visual contract.
 
 Primary signals from [app/globals.css](/home/water/Downloads/springvox-knowledge-ai/app/globals.css):
 
-- navy-driven shell backgrounds
-- cyan and teal as action and emphasis colors
-- white and soft-slate surfaces
-- large rounded corners
-- soft layered shadows
-- restrained gradients and glow effects
+- near-black olive-tinted canvas (`--canvas #0a0c0b`)
+- raised dark surfaces (`--surface`, `--surface-2`)
+- jade/teal accent (`--accent-jade #14b8a6`) for CTAs, active states, and trust markers
+- hairline borders (`--line #242a26`) — depth from tone, not heavy shadows
+- dark sidebars (`--brand-sidebar #070908`) with translucent-jade active states
 
 Important tokens include:
 
-- `--brand-navy`
+- `--canvas` / `--canvas-soft`
+- `--surface` / `--surface-2`
+- `--ink` / `--ink-soft` / `--ink-muted`
+- `--accent-jade` / `--accent-jade-hover` / `--accent-jade-50/100/200`
+- `--line` / `--line-soft`
 - `--brand-sidebar`
-- `--brand-cyan`
-- `--brand-teal`
-- `--brand-surface`
-- `--brand-surface-soft`
 - `--brand-shadow`
 
 ### Typography

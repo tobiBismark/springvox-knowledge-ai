@@ -5,13 +5,6 @@ import { AlertTriangle, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { getAccessToken, getCurrentUserProfile } from "@/src/lib/auth-client";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { AdminSearchInput } from "@/src/components/dashboard/AdminSearchInput";
 import { cn, truncate } from "@/src/lib/utils";
 import { isWorkspaceAdminRole, type UserProfile } from "@/src/lib/workspace";
@@ -34,6 +27,8 @@ const STATUS_OPTIONS: KnowledgeGap["status"][] = [
   "resolved",
   "ignored",
 ];
+
+const NO_ANSWER_FALLBACK = "No answer found in the uploaded documents.";
 
 export default function KnowledgeGapsPage() {
   const router = useRouter();
@@ -136,6 +131,14 @@ export default function KnowledgeGapsPage() {
     return matchesSearch && matchesStatus;
   });
 
+  const gapStatusCounts = {
+    all: knowledgeGaps.length,
+    open: knowledgeGaps.filter((gap) => gap.status === "open").length,
+    reviewed: knowledgeGaps.filter((gap) => gap.status === "reviewed").length,
+    resolved: knowledgeGaps.filter((gap) => gap.status === "resolved").length,
+    ignored: knowledgeGaps.filter((gap) => gap.status === "ignored").length,
+  };
+
   if (profile && !isWorkspaceAdminRole(profile.role)) {
     return null;
   }
@@ -155,22 +158,41 @@ export default function KnowledgeGapsPage() {
           placeholder="Search by question or topic..."
           className="flex-1 lg:min-w-[20rem]"
         />
-        <Select
-          value={statusFilter}
-          onValueChange={(value) => setStatusFilter(value as "all" | KnowledgeGap["status"])}
-        >
-          <SelectTrigger className="h-12 w-full rounded-xl border-[var(--line)] bg-[var(--surface)] px-4 text-sm shadow-sm focus-visible:border-teal-400 focus-visible:ring-[var(--accent-jade-100)] lg:w-44">
-            <SelectValue placeholder="All statuses" />
-          </SelectTrigger>
-          <SelectContent className="rounded-xl border-[var(--line)]">
-            <SelectItem value="all">All statuses</SelectItem>
-            {STATUS_OPTIONS.map((status) => (
-              <SelectItem key={status} value={status}>
-                {status.charAt(0).toUpperCase() + status.slice(1)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="flex flex-wrap items-center gap-2">
+          {(["all", ...STATUS_OPTIONS] as const).map((status) => (
+            <button
+              key={status}
+              type="button"
+              aria-pressed={statusFilter === status}
+              onClick={() =>
+                setStatusFilter(status as "all" | KnowledgeGap["status"])
+              }
+              className={cn(
+                "inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-xs font-semibold transition",
+                statusFilter === status
+                  ? "border-[var(--accent-jade-100)] bg-[var(--accent-jade-50)] text-[var(--accent-jade-hover)]"
+                  : "border-[var(--line)] bg-[var(--surface)] text-[var(--ink-soft)] hover:bg-[var(--surface-2)] hover:text-[var(--ink)]",
+              )}
+            >
+              <span
+                className={cn(
+                  "h-1.5 w-1.5 rounded-full",
+                  status === "open" && "bg-red-400",
+                  status === "reviewed" && "bg-amber-400",
+                  status === "resolved" && "bg-emerald-400",
+                  status === "ignored" && "bg-[var(--ink-muted)]",
+                  status === "all" && "bg-[var(--accent-jade)]",
+                )}
+              />
+              {status === "all"
+                ? "All"
+                : status.charAt(0).toUpperCase() + status.slice(1)}
+              <span className="text-[var(--ink-muted)]">
+                {gapStatusCounts[status]}
+              </span>
+            </button>
+          ))}
+        </div>
       </div>
 
       {error && (
@@ -185,20 +207,36 @@ export default function KnowledgeGapsPage() {
 
       <div className="admin-shell-card border border-[var(--line)] bg-[var(--surface)] overflow-hidden">
         {loading ? (
-          <div className="flex flex-col items-center justify-center gap-4 px-6 py-24">
-            <div className="relative w-12 h-12">
-              <Loader2 size={24} className="animate-spin text-[var(--ink-muted)]" />
-            </div>
-            <p className="text-sm font-medium text-[var(--ink-soft)]">
-              Loading unanswered questions...
-            </p>
+          <div className="divide-y divide-[var(--line)]">
+            {[1, 2, 3].map((index) => (
+              <div key={index} className="animate-pulse space-y-4 p-6 lg:p-8">
+                <div className="flex items-center gap-3">
+                  <div className="h-6 w-16 rounded-lg bg-[var(--surface-2)]" />
+                  <div className="h-6 w-px bg-[var(--surface-2)]" />
+                  <div className="h-4 w-24 rounded bg-[var(--surface-2)]" />
+                </div>
+                <div className="h-6 w-3/4 max-w-xl rounded bg-[var(--surface-2)]" />
+                <div className="flex gap-8">
+                  <div className="h-4 w-32 rounded bg-[var(--surface-2)]" />
+                  <div className="h-4 w-32 rounded bg-[var(--surface-2)]" />
+                </div>
+                <div className="flex gap-2 pt-2">
+                  {[1, 2, 3, 4].map((button) => (
+                    <div
+                      key={button}
+                      className="h-8 w-20 rounded-lg bg-[var(--surface-2)]"
+                    />
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
         ) : filteredKnowledgeGaps.length === 0 ? (
           <div className="px-6 py-24 text-center">
             <EmptyState
               icon={AlertTriangle}
               title="No unanswered questions found"
-              description="Recent questions are being answered from your uploaded documents."
+              description={NO_ANSWER_FALLBACK}
               className="border-0 bg-transparent py-0"
             />
           </div>
@@ -239,59 +277,81 @@ export default function KnowledgeGapsPage() {
                     </p>
                     <div className="flex flex-wrap gap-x-8 gap-y-3 text-xs font-medium text-[var(--ink-muted)] pt-2">
                       <span className="flex items-center gap-2">
-                        <span className="text-slate-300">•</span>
-                        <span className="text-[var(--ink-muted)]">Reported:</span>{" "}
+                        <span className="text-[var(--ink-muted)]">•</span>
+                        <span className="text-[var(--ink-muted)]">
+                          Reported:
+                        </span>{" "}
                         {new Date(gap.created_at).toLocaleDateString(
                           undefined,
                           { month: "short", day: "numeric", year: "numeric" },
                         )}
                       </span>
                       <span className="flex items-center gap-2">
-                        <span className="text-slate-300">•</span>
-                        <span className="text-[var(--ink-muted)]">Last seen:</span>{" "}
+                        <span className="text-[var(--ink-muted)]">•</span>
+                        <span className="text-[var(--ink-muted)]">
+                          Last seen:
+                        </span>{" "}
                         {new Date(gap.last_asked_at).toLocaleDateString(
                           undefined,
                           { month: "short", day: "numeric", year: "numeric" },
                         )}
                       </span>
                     </div>
-                    {gap.sample_answer && (
-                      <div className="rounded-xl border border-[var(--line)] bg-[var(--surface-2)] px-4 py-4 mt-3">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--ink-muted)] mb-2">
-                          No answer found
-                        </p>
-                        <p className="text-sm leading-relaxed text-[var(--ink-soft)]">
-                          "{truncate(gap.sample_answer, 180)}"
-                        </p>
-                      </div>
-                    )}
+                    <div className="mt-3 rounded-xl border border-[var(--line)] bg-[var(--surface-2)] px-4 py-4">
+                      <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--ink-muted)]">
+                        Answer status
+                      </p>
+                      <p className="text-sm leading-relaxed text-[var(--ink-soft)]">
+                        {gap.sample_answer
+                          ? `"${truncate(gap.sample_answer, 180)}"`
+                          : NO_ANSWER_FALLBACK}
+                      </p>
+                    </div>
                   </div>
 
-                  <div className="flex flex-wrap gap-2 lg:flex-nowrap pt-2 border-t border-[var(--line)]">
-                    <div className="pt-2 flex items-center gap-2 w-full lg:w-auto">
-                      {STATUS_OPTIONS.map((status) => (
-                        <button
-                          key={status}
-                          type="button"
+                  <div className="flex flex-wrap items-center justify-end gap-2 border-t border-[var(--line)] pt-3">
+                    <div className="flex items-center gap-2 rounded-xl border border-[var(--line)] bg-[var(--surface-2)] px-2.5 py-2">
+                      <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--ink-muted)]">
+                        Status
+                      </span>
+
+                      <div className="relative">
+                        <select
+                          aria-label={`Set status for ${gap.question}`}
+                          value={gap.status}
                           disabled={savingId === gap.id}
-                          onClick={() => updateGapStatus(gap.id, status)}
+                          onChange={(event) =>
+                            updateGapStatus(
+                              gap.id,
+                              event.target.value as KnowledgeGap["status"],
+                            )
+                          }
                           className={cn(
-                            "rounded-lg px-3 py-2 text-[11px] font-bold uppercase tracking-wider transition-all border",
-                            status === gap.status
-                              ? "bg-slate-950 text-white border-slate-950 shadow-lg shadow-slate-950/20"
-                              : "bg-[var(--surface)] text-[var(--ink-soft)] border-[var(--line)] hover:border-[var(--line)] hover:text-[var(--ink)] hover:shadow-md disabled:opacity-40 disabled:cursor-not-allowed",
+                            "appearance-none rounded-lg border border-[var(--line)] bg-[var(--surface)] px-2.5 py-1.5 pr-8 text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--ink)] outline-none transition focus:border-[var(--accent-jade-100)] disabled:cursor-not-allowed disabled:opacity-60",
+                            gap.status === "open" && "text-red-300",
+                            gap.status === "reviewed" && "text-amber-300",
+                            gap.status === "resolved" && "text-emerald-300",
+                            gap.status === "ignored" &&
+                              "text-[var(--ink-soft)]",
                           )}
                         >
-                          {savingId === gap.id && status === gap.status ? (
-                            <Loader2
-                              size={14}
-                              className="animate-spin inline"
-                            />
-                          ) : (
-                            status
-                          )}
-                        </button>
-                      ))}
+                          {STATUS_OPTIONS.map((status) => (
+                            <option key={status} value={status}>
+                              {status}
+                            </option>
+                          ))}
+                        </select>
+                        <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--ink-muted)]">
+                          ▾
+                        </span>
+                      </div>
+
+                      {savingId === gap.id && (
+                        <Loader2
+                          size={12}
+                          className="animate-spin text-[var(--ink-muted)]"
+                        />
+                      )}
                     </div>
                   </div>
                 </div>

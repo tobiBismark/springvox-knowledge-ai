@@ -1,7 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Copy, Eye, Loader2, MailPlus, ShieldCheck, Users, UserCog, AlertCircle, Clock } from "lucide-react";
+import {
+  Copy,
+  Eye,
+  Loader2,
+  MailPlus,
+  ShieldCheck,
+  Users,
+  UserCog,
+  AlertCircle,
+  Clock,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -46,7 +56,12 @@ import {
   AppTableRow,
 } from "@/src/components/ui/app-table";
 import { ConfirmDialog } from "@/src/components/ui/confirm-dialog";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 
 type ManagedUser = {
   id: string;
@@ -114,7 +129,9 @@ export default function UsersPage() {
   const [saving, setSaving] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<"all" | AnyAppRole>("all");
-  const [statusFilter, setStatusFilter] = useState<"all" | ManagedUser["status"]>("all");
+  const [statusFilter, setStatusFilter] = useState<
+    "all" | ManagedUser["status"]
+  >("all");
   const [error, setError] = useState<string | null>(null);
   const [confirmState, setConfirmState] = useState<{
     user: ManagedUser;
@@ -185,7 +202,8 @@ export default function UsersPage() {
       (user.email || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
       (user.full_name || "").toLowerCase().includes(searchQuery.toLowerCase());
     const matchesRole = roleFilter === "all" || user.role === roleFilter;
-    const matchesStatus = statusFilter === "all" || user.status === statusFilter;
+    const matchesStatus =
+      statusFilter === "all" || user.status === statusFilter;
 
     return matchesSearch && matchesRole && matchesStatus;
   });
@@ -194,7 +212,28 @@ export default function UsersPage() {
     (currentPage - 1) * PAGE_SIZE,
     currentPage * PAGE_SIZE,
   );
-  const hasFilters = Boolean(searchQuery) || roleFilter !== "all" || statusFilter !== "all";
+  const hasFilters =
+    Boolean(searchQuery) || roleFilter !== "all" || statusFilter !== "all";
+  const pendingInvitations = invitations.filter(
+    (invitation) => invitation.status === "pending",
+  );
+
+  const getDisplayUserName = (user: ManagedUser) => {
+    const trimmedName = user.full_name?.trim();
+
+    if (
+      trimmedName &&
+      trimmedName.toLowerCase() !== user.workspace_name.toLowerCase()
+    ) {
+      return trimmedName;
+    }
+
+    if (user.email) {
+      return user.email.split("@")[0];
+    }
+
+    return "Anonymous";
+  };
 
   useEffect(() => {
     setCurrentPage(1);
@@ -287,7 +326,10 @@ export default function UsersPage() {
     }
   };
 
-  const updateUserStatus = async (targetUser: ManagedUser, status: "active" | "suspended") => {
+  const updateUserStatus = async (
+    targetUser: ManagedUser,
+    status: "active" | "suspended",
+  ) => {
     try {
       setSaving(true);
       const accessToken = await getAccessToken();
@@ -371,9 +413,21 @@ export default function UsersPage() {
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard label="Workspace users" value={users.length} icon={Users} />
-        <StatCard label="Workspace admins" value={users.filter((u) => u.role === "tenant_admin").length} icon={UserCog} />
-        <StatCard label="Viewers" value={users.filter((u) => u.role === "viewer").length} icon={ShieldCheck} />
-        <StatCard label="Pending invites" value={invitations.filter((i) => i.status === "pending").length} icon={Clock} />
+        <StatCard
+          label="Workspace admins"
+          value={users.filter((u) => u.role === "tenant_admin").length}
+          icon={UserCog}
+        />
+        <StatCard
+          label="Viewers"
+          value={users.filter((u) => u.role === "viewer").length}
+          icon={ShieldCheck}
+        />
+        <StatCard
+          label="Pending invites"
+          value={pendingInvitations.length}
+          icon={Clock}
+        />
       </div>
 
       <ResponsiveToolbar className="lg:items-center">
@@ -410,7 +464,9 @@ export default function UsersPage() {
         </Select>
         <Select
           value={statusFilter}
-          onValueChange={(value) => setStatusFilter(value as "all" | ManagedUser["status"])}
+          onValueChange={(value) =>
+            setStatusFilter(value as "all" | ManagedUser["status"])
+          }
         >
           <SelectTrigger className="h-12 w-full rounded-xl border-[var(--line)] bg-[var(--surface)] px-4 text-sm shadow-sm lg:w-[13rem]">
             <SelectValue placeholder="All statuses" />
@@ -451,7 +507,10 @@ export default function UsersPage() {
         {loading ? (
           <div className="flex flex-col items-center justify-center gap-4 px-6 py-24">
             <div className="relative w-12 h-12">
-              <Loader2 size={24} className="animate-spin text-[var(--ink-muted)]" />
+              <Loader2
+                size={24}
+                className="animate-spin text-[var(--ink-muted)]"
+              />
             </div>
             <p className="text-sm font-medium text-[var(--ink-soft)]">
               Loading users...
@@ -488,7 +547,7 @@ export default function UsersPage() {
                       className="truncate text-sm font-semibold text-[var(--ink)]"
                       title={user.full_name || user.email || ""}
                     >
-                      {user.full_name || (user.email ? user.email.split("@")[0] : "Anonymous")}
+                      {getDisplayUserName(user)}
                     </p>
                     <p
                       className="mt-0.5 truncate text-xs text-[var(--ink-muted)]"
@@ -571,7 +630,7 @@ export default function UsersPage() {
                       className="truncate text-sm font-semibold text-[var(--ink)]"
                       title={user.full_name || user.email || ""}
                     >
-                      {user.full_name || (user.email ? user.email.split("@")[0] : "Anonymous")}
+                      {getDisplayUserName(user)}
                     </p>
                     <p
                       className="mt-0.5 truncate text-xs text-[var(--ink-muted)]"
@@ -675,15 +734,14 @@ export default function UsersPage() {
             </p>
           </div>
           <div className="flex h-9 items-center rounded-xl border border-[var(--line)] bg-[var(--surface-2)] px-3 text-xs font-bold text-[var(--ink-soft)]">
-            {invitations.filter((item) => item.status === "pending").length}{" "}
-            pending
+            {pendingInvitations.length} pending
           </div>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {invitations.length === 0 ? (
+        <div className="overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--surface)]">
+          {pendingInvitations.length === 0 ? (
             <div className="col-span-full py-12 text-center rounded-2xl border-2 border-dashed border-[var(--line)] bg-[var(--surface-2)]">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--surface)] text-slate-300 mx-auto mb-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--surface)] text-[var(--ink-muted)] mx-auto mb-3">
                 <MailPlus size={24} />
               </div>
               <p className="text-sm font-medium text-[var(--ink-soft)]">
@@ -694,67 +752,66 @@ export default function UsersPage() {
               </p>
             </div>
           ) : (
-            invitations.slice(0, 12).map((invitation) => (
+            pendingInvitations.slice(0, 12).map((invitation) => (
               <div
                 key={invitation.id}
-              className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-4 shadow-sm"
+                className="flex items-center justify-between gap-3 border-b border-[var(--line)] px-3 py-3 last:border-b-0"
               >
-                <div className="flex flex-col gap-4 h-full">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0 flex-1">
-                      <p
-                        className="text-sm font-bold text-[var(--ink)] truncate"
-                        title={invitation.email}
-                      >
-                        {invitation.email}
-                      </p>
-                      <p className="mt-2 text-xs font-medium text-[var(--ink-muted)] flex items-center gap-2">
-                        <span
-                          className={cn(
-                            "rounded-full w-2 h-2 block",
-                            invitation.status === "pending"
-                              ? "bg-amber-400"
-                              : invitation.status === "accepted"
-                                ? "bg-emerald-500"
-                                : "bg-slate-400",
-                          )}
-                        />
-                        <span className="capitalize">
-                          {getRoleLabel(invitation.role)}
-                        </span>{" "}
-                        • {invitation.status}
-                      </p>
-                    </div>
-                    {invitation.status === "pending" && (
-                      <AppButton
-                        type="button"
-                        disabled={saving}
-                        onClick={() => revokeInvitation(invitation.id)}
-                        tone="destructive"
-                        className="h-8 shrink-0 px-3 text-[11px]"
-                      >
-                        Revoke
-                      </AppButton>
-                    )}
+                <div className="flex min-w-0 flex-1 items-center gap-3">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[var(--line)] bg-[var(--surface-2)] text-[var(--ink-muted)]">
+                    <MailPlus size={14} />
                   </div>
+                  <div className="min-w-0 flex-1">
+                    <p
+                      className="truncate text-sm font-semibold text-[var(--ink)]"
+                      title={invitation.email}
+                    >
+                      {invitation.email}
+                    </p>
+                    <div className="mt-1 flex flex-wrap items-center gap-2 text-[10px]">
+                      <span
+                        className={cn(
+                          "inline-flex rounded-full border px-2.5 py-1 font-bold uppercase tracking-[0.14em]",
+                          getRoleTone(invitation.role),
+                        )}
+                      >
+                        {getRoleLabel(invitation.role)}
+                      </span>
+                      <span className="inline-flex rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 font-bold uppercase tracking-[0.14em] text-amber-300">
+                        Pending
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
                   <AppButton
                     type="button"
                     onClick={() =>
                       navigator.clipboard.writeText(invitation.invite_url)
                     }
                     tone="secondary"
-                    className="h-10 w-full text-xs"
+                    className="h-8 px-2.5 text-[11px]"
                   >
-                    <Copy size={14} />
-                    Copy Link
+                    <Copy size={13} />
+                    Copy link
                   </AppButton>
-                  <p className="text-[11px] text-[var(--ink-muted)] font-medium">
-                    Expires{" "}
-                    {new Date(invitation.expires_at).toLocaleDateString(
-                      undefined,
-                      { month: "short", day: "numeric" },
-                    )}
-                  </p>
+                  <AppButton
+                    type="button"
+                    disabled={saving}
+                    onClick={() => revokeInvitation(invitation.id)}
+                    tone="destructive"
+                    className="h-8 px-2.5 text-[11px]"
+                  >
+                    Revoke
+                  </AppButton>
+                </div>
+
+                <div className="w-28 text-right text-[11px] text-[var(--ink-muted)]">
+                  {new Date(invitation.expires_at).toLocaleDateString(
+                    undefined,
+                    { month: "short", day: "numeric" },
+                  )}
                 </div>
               </div>
             ))
@@ -783,8 +840,16 @@ export default function UsersPage() {
         }}
       />
 
-      <Sheet open={Boolean(viewUser)} onOpenChange={(open) => { if (!open) setViewUser(null); }}>
-        <SheetContent side="right" className="w-[min(100vw-1rem,28rem)] overflow-y-auto bg-[var(--surface)]">
+      <Sheet
+        open={Boolean(viewUser)}
+        onOpenChange={(open) => {
+          if (!open) setViewUser(null);
+        }}
+      >
+        <SheetContent
+          side="right"
+          className="w-[min(100vw-1rem,28rem)] overflow-y-auto bg-[var(--surface)]"
+        >
           <SheetHeader>
             <SheetTitle>User details</SheetTitle>
           </SheetHeader>
@@ -792,62 +857,98 @@ export default function UsersPage() {
             <div className="mt-6 space-y-5 px-1">
               <div className="flex items-center gap-3">
                 <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[var(--accent-jade)] text-base font-bold text-[#04110e]">
-                  {(viewUser.full_name || viewUser.email || "U").slice(0, 1).toUpperCase()}
+                  {(viewUser.full_name || viewUser.email || "U")
+                    .slice(0, 1)
+                    .toUpperCase()}
                 </div>
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold text-[var(--ink)]">
-                    {viewUser.full_name || (viewUser.email ? viewUser.email.split("@")[0] : "Anonymous")}
+                    {viewUser.full_name ||
+                      (viewUser.email
+                        ? viewUser.email.split("@")[0]
+                        : "Anonymous")}
                   </p>
-                  <p className="truncate text-xs text-[var(--ink-muted)]">{viewUser.email}</p>
+                  <p className="truncate text-xs text-[var(--ink-muted)]">
+                    {viewUser.email}
+                  </p>
                 </div>
               </div>
 
               <dl className="grid grid-cols-2 gap-3">
                 <div className="rounded-xl border border-[var(--line)] bg-[var(--surface-2)] p-3">
-                  <dt className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--ink-muted)]">Role</dt>
+                  <dt className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--ink-muted)]">
+                    Role
+                  </dt>
                   <dd className="mt-1.5">
-                    <span className={cn("inline-flex rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em]", getRoleTone(viewUser.role))}>
+                    <span
+                      className={cn(
+                        "inline-flex rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em]",
+                        getRoleTone(viewUser.role),
+                      )}
+                    >
                       {getRoleLabel(viewUser.role)}
                     </span>
                   </dd>
                 </div>
                 <div className="rounded-xl border border-[var(--line)] bg-[var(--surface-2)] p-3">
-                  <dt className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--ink-muted)]">Status</dt>
-                  <dd className="mt-1.5"><UserStatusBadge status={viewUser.status} /></dd>
+                  <dt className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--ink-muted)]">
+                    Status
+                  </dt>
+                  <dd className="mt-1.5">
+                    <UserStatusBadge status={viewUser.status} />
+                  </dd>
                 </div>
                 <div className="rounded-xl border border-[var(--line)] bg-[var(--surface-2)] p-3">
-                  <dt className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--ink-muted)]">Added</dt>
-                  <dd className="mt-1.5 text-sm text-[var(--ink)]">{new Date(viewUser.created_at).toLocaleDateString()}</dd>
+                  <dt className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--ink-muted)]">
+                    Added
+                  </dt>
+                  <dd className="mt-1.5 text-sm text-[var(--ink)]">
+                    {new Date(viewUser.created_at).toLocaleDateString()}
+                  </dd>
                 </div>
                 <div className="rounded-xl border border-[var(--line)] bg-[var(--surface-2)] p-3">
-                  <dt className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--ink-muted)]">Updated</dt>
-                  <dd className="mt-1.5 text-sm text-[var(--ink)]">{new Date(viewUser.updated_at).toLocaleDateString()}</dd>
+                  <dt className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--ink-muted)]">
+                    Updated
+                  </dt>
+                  <dd className="mt-1.5 text-sm text-[var(--ink)]">
+                    {new Date(viewUser.updated_at).toLocaleDateString()}
+                  </dd>
                 </div>
               </dl>
 
               <div className="border-t border-[var(--line)] pt-5">
-                <p className="mb-2.5 text-xs font-semibold text-[var(--ink)]">Change role</p>
+                <p className="mb-2.5 text-xs font-semibold text-[var(--ink)]">
+                  Change role
+                </p>
                 <div className="flex flex-wrap gap-2">
                   {ROLE_OPTIONS.map((roleOption) => (
                     <AppButton
                       key={roleOption}
                       type="button"
                       disabled={saving || roleOption === viewUser.role}
-                      tone={roleOption === viewUser.role ? "ghost" : "secondary"}
+                      tone={
+                        roleOption === viewUser.role ? "ghost" : "secondary"
+                      }
                       onClick={async () => {
                         await updateRole(viewUser, roleOption, false);
                         setViewUser(null);
                       }}
                       className="h-9 px-3 text-xs"
                     >
-                      {roleOption === viewUser.role ? "Current" : roleOption === "tenant_admin" ? "Make admin" : "Make viewer"}
+                      {roleOption === viewUser.role
+                        ? "Current"
+                        : roleOption === "tenant_admin"
+                          ? "Make admin"
+                          : "Make viewer"}
                     </AppButton>
                   ))}
                 </div>
               </div>
 
               <div className="border-t border-[var(--line)] pt-5">
-                <p className="mb-2.5 text-xs font-semibold text-[var(--ink)]">Account status</p>
+                <p className="mb-2.5 text-xs font-semibold text-[var(--ink)]">
+                  Account status
+                </p>
                 {viewUser.status === "active" ? (
                   <AppButton
                     type="button"
